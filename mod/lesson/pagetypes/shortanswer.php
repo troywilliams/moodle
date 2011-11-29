@@ -85,7 +85,7 @@ class lesson_page_type_shortanswer extends lesson_page {
 
             if ($useregexp) { //we are using 'normal analysis', which ignores case
                 $ignorecase = '';
-                if (substr($expectedanswer,0,-2) == '/i') {
+                if (strpos($expectedanswer, '/i', strlen($expectedanswer)-2) !== false) {
                     $expectedanswer = substr($expectedanswer,0,-2);
                     $ignorecase = 'i';
                 }
