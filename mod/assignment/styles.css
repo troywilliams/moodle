@@ -45,4 +45,4 @@
 #page-mod-assignment-submissions.dir-rtl .mform.optionspref .fitem .fitemtitle {text-align:left;}
 #page-mod-assignment-type-uploadsingle-upload.dir-rtl .mdl-left {text-align:right;}
 
-.mod-assignment-download-link {text-align:right;}
+.mod-assignment-download-link, .mod-assignment-verify-link {text-align:right;}

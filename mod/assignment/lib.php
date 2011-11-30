@@ -141,7 +141,13 @@ class assignment_base {
     /// Set up things for a HTML editor if it's needed
         $this->defaultformat = editors_get_preferred_format();
     }
-
+    /**
+     * Display link to page used to verify a submission. Should be overridden in child.
+     */
+    function can_verify_submissions() {
+        return false;
+    }
+    
     /**
      * Display the assignment, used by view.php
      *
@@ -978,10 +984,7 @@ class assignment_base {
             $userfields = user_picture::fields('u', array('lastaccess'));
             $select = "SELECT $userfields,
                               s.id AS submissionid, s.grade, s.submissioncomment,
-                              s.timemodified, s.timemarked,
-                              CASE WHEN s.timemarked > 0 AND s.timemarked >= s.timemodified THEN 1
-                                   ELSE 0 END AS status ";
-
+                              s.timemodified, s.timemarked ";
             $sql = 'FROM {user} u '.
                    'LEFT JOIN {assignment_submissions} s ON u.id = s.userid
                    AND s.assignment = '.$this->assignment->id.' '.
@@ -994,6 +997,8 @@ class assignment_base {
 
             if (is_array($auser) && count($auser)>1) {
                 $nextuser = next($auser);
+            /// Calculate user status
+                $nextuser->status = ($nextuser->timemarked > 0) && ($nextuser->timemarked >= $nextuser->timemodified);
                 $nextid = $nextuser->id;
             }
         }
@@ -1289,7 +1294,13 @@ class assignment_base {
         // Start working -- this is necessary as soon as the niceties are over
         $table->setup();
 
+        if (empty($users)) {
+            echo $OUTPUT->heading(get_string('nosubmitusers','assignment'));
+            echo '</div>';
+            return true;
+        }
         /// Construct the SQL
+        
         list($where, $params) = $table->get_sql_where();
         if ($where) {
             $where .= ' AND ';
@@ -1312,10 +1323,7 @@ class assignment_base {
         if (!empty($users)) {
             $select = "SELECT $ufields,
                               s.id AS submissionid, s.grade, s.submissioncomment,
-                              s.timemodified, s.timemarked,
-                              CASE WHEN s.timemarked > 0 AND s.timemarked >= s.timemodified THEN 1
-                                   ELSE 0 END AS status ";
-
+                              s.timemodified, s.timemarked ";
             $sql = 'FROM {user} u '.
                    'LEFT JOIN {assignment_submissions} s ON u.id = s.userid
                     AND s.assignment = '.$this->assignment->id.' '.
@@ -1345,6 +1353,8 @@ class assignment_base {
                             $locked_overridden = 'overridden';
                         }
 
+                    /// Calculate user status
+                        $auser->status = ($auser->timemarked > 0) && ($auser->timemarked >= $auser->timemodified);
                         $picture = $OUTPUT->user_picture($auser);
 
                         if (empty($auser->submissionid)) {
@@ -1479,6 +1489,13 @@ class assignment_base {
                     $currentposition++;
                 }
                 if ($hassubmission && ($this->assignment->assignmenttype=='upload' || $this->assignment->assignmenttype=='online' || $this->assignment->assignmenttype=='uploadsingle')) { //TODO: this is an ugly hack, where is the plugin spirit? (skodak)
+                    // UOW hack, if type can verify display link.
+                    if ($this->can_verify_submissions()) {
+                        echo html_writer::start_tag('div', array('class' => 'mod-assignment-verify-link'));
+                        echo html_writer::link(new moodle_url('/mod/assignment/verifyfile.php', array('id'=>$this->cm->id)), get_string('verifyfile', 'assignment'));     
+                        echo html_writer::end_tag('div');
+                    }
+                    // UOW end
                     echo html_writer::start_tag('div', array('class' => 'mod-assignment-download-link'));
                     echo html_writer::link(new moodle_url('/mod/assignment/submissions.php', array('id' => $this->cm->id, 'download' => 'zip')), get_string('downloadall', 'assignment'));
                     echo html_writer::end_tag('div');
@@ -1761,7 +1778,7 @@ class assignment_base {
                 $info->username = fullname($user, true);
                 $info->assignment = format_string($this->assignment->name,true);
                 $info->url = $CFG->wwwroot.'/mod/assignment/submissions.php?id='.$this->cm->id;
-                $info->timeupdated = userdate($submission->timemodified, '%c', $teacher->timezone);
+                $info->timeupdated = strftime('%c',$submission->timemodified);
 
                 $postsubject = $strsubmitted.': '.$info->username.' -> '.$this->assignment->name;
                 $posttext = $this->email_teachers_text($info);
@@ -2210,6 +2227,162 @@ class assignment_base {
      */
     static function restore_one_submission($info, $restore, $assignment, $submission) {
         return true;
+    }
+    /**
+     * Generates file hash
+     *
+     * @param string $sha1
+     * @param date $submissiondate
+     * @return string $receipt
+     */
+    function get_coversheet_file_receipt($sha1, $submissiondate) {
+        $receipt = '';
+        $date = date('Ymd', $submissiondate);
+
+        for ($i=0; $i<8; $i++) {
+            $receipt .= substr($sha1, $i*4, 4) . $date[7-$i] . '-';
+        }
+        $receipt= substr($receipt, 0, -1);
+
+        return $receipt;
+    }
+    /**
+     * Gets data for the coversheet
+     *
+     * @param object $submission
+     * @return array
+     */
+    function get_coversheet_data($submission) {
+        global $CFG, $DB;
+
+        // Get filesystem
+        $fs = get_file_storage();
+        $assignment = $this->assignment;
+        $user = $DB->get_record('user', array('id'=>$submission->userid));
+        // Get list of tutors
+        $managerroles = split(',', $CFG->coursecontact);
+        
+        $teachers = get_role_users($managerroles, get_context_instance(CONTEXT_COURSE, $this->course->id),
+                                     true, '', 'r.sortorder ASC, u.lastname ASC', false);
+
+        $fields = array();
+        $fields['name'] = fullname($user);
+        $fields['studentid'] = $user->idnumber;
+        $fields['username'] = $user->username;
+        $fields['courseid'] = $this->course->fullname;
+        $fields['assignmentname'] = $assignment->name;
+        $fields['teachers'] = '';
+        foreach ($teachers as $teacher) {
+            $fields['teachers'] .= $teacher->firstname.' '.$teacher->lastname.'<br />';
+        }
+        $fields['teachers'] = substr($fields['teachers'], 0, -6);
+        $fields['datesubmitted'] = userdate($submission->timemodified);
+        $fields['notes'] = $submission->data1;
+
+        $fields['table'] = "<table>\n<tr><th>File Name</th><th>Receipt</th></tr>";
+        $files = $fs->get_area_files($this->context->id, 'mod_assignment', 'submission', $submission->id);
+        foreach ($files as $file) {
+            if ($file->get_filename() == '.'){
+                continue;
+            }
+            $filename = $file->get_filename();
+            $filereceipt = $this->get_coversheet_file_receipt($file->get_contenthash(), $submission->timemodified);
+            $fields['table'] .= '<tr><td>'.$filename.'</td><td>'.$filereceipt.'</td></tr>';
+        }
+        $fields['table'] .= '</table>';
+
+        return $fields;
+    }
+    /**
+     * Genrate an assignment coversheet in RTF format
+     *
+     * @param object $submission
+     * @return string coversheet
+     */
+    function get_coversheet_rtf($submission) {
+        global $CFG;
+        
+        $fields = $this->get_coversheet_data($submission);
+        // Remap data to placeholder format used in RTF template
+        $rtffields = array();
+        foreach ($fields as $key => $value) {
+            $rtffields['#'.$key.'#'] = $value;
+        }
+        unset($fields);
+        
+        $tr = array();
+        $tr['<p>']      = '\par \pard\plain \intbl\ltrpar\s14\ql\rtlch\af7\afs22\lang255\ltrch\dbch\af8\langfe255\hich\f7\fs22\lang2057\loch\f7\fs22\lang2057 {\rtlch \ltrch\loch\f7\fs22\lang2057\i0\b0 ';
+        $tr['</p>']     = '}\par';
+        $tr['<br />']   = '\par ';
+        $tr['<b>']      = '{\rtlch\ltrch\dbch\hich\b\loch\b ';
+        $tr['</b>']     = '}';
+        $tr['<u>']      = '{\ul\ulc0 ';
+        $tr['</u>']     = '}';
+        $tr['<h1>']     = '{\rtlch \ltrch\loch\f3\fs24\lang2057\i0\b ';
+        $tr['</h1>']    = '}\par\par';
+        $tr['<h2>']     = '{\rtlch\ltrch\dbch\hich\b\loch\b ';
+        $tr['</h2>']    = '}\par \pard\plain \intbl\ltrpar\s14\ql\rtlch\af7\afs22\lang255\ltrch\dbch\af8\langfe255\hich\f7\fs22\lang2057\loch\f7\fs22\lang2057 {\rtlch \ltrch\loch\f7\fs22\lang2057\i0\b0 }';
+        $tr['<tr>']     = '\trowd\trql\trpaddft3\trpaddt55\trpaddfl3\trpaddl55\trpaddfb3\trpaddb55\trpaddfr3\trpaddr55\clbrdrt\brdrs\brdrw1\brdrcf1\clbrdrl\brdrs\brdrw1\brdrcf1\clbrdrb\brdrs\brdrw1\brdrcf1\cellx3315\clbrdrt\brdrs\brdrw1\brdrcf1\clbrdrl\brdrs\brdrw1\brdrcf1\clbrdrb\brdrs\brdrw1\brdrcf1\clbrdrr\brdrs\brdrw1\brdrcf1\cellx9637'; 
+        $tr['</tr>']    = '\row';
+        $tr['<th>']     = '\pard\intbl {\rtlch \ltrch\loch\f3\fs24\lang2057\i0\b ';
+        $tr['</th>']    = '} \cell';
+        $tr['<td>']     = '\pard\intbl {\rtlch \ltrch\loch\f7\fs22\lang2057\i0\b0 ';
+        $tr['</td>']    = '} \cell';
+        
+        foreach ($rtffields as $idx => $rtffield) {
+            $rtffield = purify_html($rtffield);
+            $rtffields[$idx] = strip_tags(strtr($rtffield, $tr));
+        }
+        
+        if (!$template = file_get_contents($CFG->dirroot.'/mod/assignment/template.rtf')) {
+            return false;
+        }
+        $template = strtr($template, $rtffields);
+
+        return $template;
+    }
+    /**
+     * Generate an assignment coversheet in text
+     *
+     * @param object $submission
+     * @return string
+     */
+    /*function get_coversheet_text($submission) {} @todo not yet implemented */
+    /**
+     * Generate an assignment coversheet in HTML
+     *
+     * @param object $submission
+     * @return string
+     */
+    function get_coversheet_html($submission) {
+
+        $fields = $this->get_coversheet_data($submission);
+        
+        $options->para=false;
+
+        $tr = array('<table>' => '<table class="flexible submissions">',
+                    '<th>'    => '<th class="header" scope="col" >',
+                    '<td>'    => '<td class="cell">');
+
+        $coversheet = '<table cellpadding="3">';
+
+        foreach ($fields as $name => $value) {
+            if ($name == 'table') {
+                continue;
+            }
+            $coversheet .= '<tr>
+                              <td style="text-align: right;" valign="top"><b>'.get_string($name, 'assignment').':</b></td>
+                              <td>'.format_text($value, FORMAT_MOODLE, $options).'</td>
+                            </tr>
+                            ';
+        }
+
+        $coversheet .= '</table>
+                       <p>&nbsp;</p><h3>'.get_string('submittedfiles', 'assignment').':</h3>';
+
+        $coversheet .= strtr($fields['table'], $tr);
+
+        return $coversheet;
     }
 
 } ////// End of the assignment_base class
