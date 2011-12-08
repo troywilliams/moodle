@@ -59,11 +59,16 @@ class enrol_meta_plugin extends enrol_plugin {
      * @return moodle_url page url
      */
     public function get_newinstance_link($courseid) {
+        global $CFG;
+        
         $context = get_context_instance(CONTEXT_COURSE, $courseid, MUST_EXIST);
         if (!has_capability('moodle/course:enrolconfig', $context) or !has_capability('enrol/meta:config', $context)) {
             return NULL;
         }
         // multiple instances supported - multiple parent courses linked
+        if (!empty($CFG->enrol_meta_addmultiple)) {
+            return new moodle_url('/enrol/meta/addmultiple.php', array('id'=>$courseid));
+        }
         return new moodle_url('/enrol/meta/addinstance.php', array('id'=>$courseid));
     }
 
