@@ -25,6 +25,8 @@
  */
 
 $string['linkedcourse'] = 'Link course';
+$string['linkcourses'] = 'Link courses';
+$string['linkmultiplecourses'] = 'Link multiple courses';
 $string['meta:config'] = 'Configure meta enrol instances';
 $string['meta:selectaslinked'] = 'Select course as meta linked';
 $string['nosyncroleids'] = 'Roles that are not synchronised';
