@@ -74,6 +74,9 @@ function cron() {
     $prev_md5           = $this->get_config('prev_md5');
     $prev_path          = $this->get_config('prev_path');
 
+    $starttime = time();
+    $timeelapsed = 0;
+
     if (empty($imsfilelocation)) {
         // $filename = "$CFG->dirroot/enrol/imsenterprise/example.xml";  // Default location
         $filename = "$CFG->dataroot/1/imsenterprise-enrol.xml";  // Default location
