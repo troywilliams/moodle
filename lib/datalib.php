@@ -95,7 +95,8 @@ function get_admins() {
 
     $sql = "SELECT u.*
               FROM {user} u
-             WHERE u.deleted = 0 AND u.id IN ($CFG->siteadmins)";
+             WHERE u.deleted = 0 AND u.id IN ($CFG->siteadmins)
+          ORDER BY u.id ASC";
 
     return $DB->get_records_sql($sql);
 }
