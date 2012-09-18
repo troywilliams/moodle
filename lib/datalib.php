@@ -1678,10 +1678,15 @@ function add_to_log($courseid, $module, $action, $url='', $info='', $cm=0, $user
     if ($user) {
         $userid = $user;
     } else {
-        if (session_is_loggedinas()) {  // Don't log
-            return;
-        }
         $userid = empty($USER->id) ? '0' : $USER->id;
+        if (session_is_loggedinas() && $action != 'loginas') {
+            if (!isset($CFG->trackloggedinas)) {
+                return;
+            }
+            $info = shorten_text('[loggedinas: ' . $USER->id . ' - ' . fullname($USER, true) . '] ' . $info, 255); // info field limit is 255
+            $realuser = session_get_realuser();
+            $userid = $realuser->id;
+        }
     }
 
     if (isset($CFG->logguests) and !$CFG->logguests) {
