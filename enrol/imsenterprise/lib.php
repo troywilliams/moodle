@@ -64,6 +64,13 @@ var $log;
 *
 */
 function cron() {
+    mtrace('[ENROL IMS Enterprise] cron has disabled in code, due to no timing feature');
+}
+/**
+ * Can control when sync called
+ * @global <type> $CFG
+ */
+function sync_enrolments() {
     global $CFG;
 
     // Get configs
@@ -223,6 +230,7 @@ function cron() {
         $msg = "An IMS enrolment has been carried out within Moodle.\nTime taken: $timeelapsed seconds.\n\n";
         if(!empty($logtolocation)){
             if($this->logfp){
+                $msg .= $this->log;
                 $msg .= "Log data has been written to:\n";
                 $msg .= "$logtolocation\n";
                 $msg .= "(Log file size: ".ceil(filesize($logtolocation)/1024)."Kb)\n\n";
@@ -315,6 +323,11 @@ function process_group_tag($tagcontents) {
 
     // Process tag contents
     $group = new stdClass();
+    $group->coursecode = null;
+    $group->description = null;
+    $group->shortName = null;
+    $group->fulldescription = null;
+    $group->category = null;
     if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
         $group->coursecode = trim($matches[1]);
     }
@@ -756,6 +769,7 @@ function process_properties_tag($tagcontents){
 */
 function log_line($string){
     mtrace($string);
+    $this->log .= $string . "\n";
     if($this->logfp) {
         fwrite($this->logfp, $string . "\n");
     }
