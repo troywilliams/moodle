@@ -48,14 +48,21 @@ class enrol_flatfile_plugin extends enrol_plugin {
      *   starttime        = start time (in seconds since epoch) - optional
      *   endtime          = end time (in seconds since epoch) - optional
      */
-    private $log;
+    public $log;
 
     public function cron() {
+        mtrace('[ENROL flatfile] cron has disabled in code, due to no timing feature');
+    } // end of function
+
+    /**
+     * Can control when sync called
+     * @global <type> $CFG
+     */
+    public function sync_enrolments() {
         $this->process_file();
 
         $this->process_buffer();
 
-        echo $this->log;
     } // end of function
 
     protected function process_file() {
@@ -163,25 +170,24 @@ class enrol_flatfile_plugin extends enrol_plugin {
                 message_send($eventdata);
                 $this->log .= "Error unlinking file $filename\n";
             }
-
-            if (!empty($mailadmins)) {
-
-                // Send mail to admin
-                $eventdata = new stdClass();
-                $eventdata->modulename        = 'moodle';
-                $eventdata->component         = 'course';
-                $eventdata->name              = 'flatfile_enrolment';
-                $eventdata->userfrom          = get_admin();
-                $eventdata->userto            = get_admin();
-                $eventdata->subject           = "Flatfile Enrolment Log";
-                $eventdata->fullmessage       = $this->log;
-                $eventdata->fullmessageformat = FORMAT_PLAIN;
-                $eventdata->fullmessagehtml   = '';
-                $eventdata->smallmessage      = '';
-                message_send($eventdata);
-            }
-
+        } else {
+            $this->log .= " $filename doesn't exist.\n";
         } // end of if(file_exists)
+        if (!empty($mailadmins)) {
+            // Send mail to admin
+            $eventdata = new stdClass();
+            $eventdata->modulename        = 'moodle';
+            $eventdata->component         = 'course';
+            $eventdata->name              = 'flatfile_enrolment';
+            $eventdata->userfrom          = get_admin();
+            $eventdata->userto            = get_admin();
+            $eventdata->subject           = "Flatfile Enrolment Log";
+            $eventdata->fullmessage       = $this->log;
+            $eventdata->fullmessageformat = FORMAT_PLAIN;
+            $eventdata->fullmessagehtml   = '';
+            $eventdata->smallmessage      = '';
+            message_send($eventdata);
+        }
 
     } // end of function
 
