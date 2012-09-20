@@ -91,6 +91,7 @@ function message_send($eventdata) {
     $savemessage->fullmessageformat = $eventdata->fullmessageformat;
     $savemessage->fullmessagehtml   = $eventdata->fullmessagehtml;
     $savemessage->smallmessage      = $eventdata->smallmessage;
+    $savemessage->anonymous         = isset($eventdata->anonymous) ? $eventdata->anonymous : 0; // support for anonymous user
 
     if (!empty($eventdata->notification)) {
         $savemessage->notification = $eventdata->notification;
