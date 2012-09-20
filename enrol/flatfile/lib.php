@@ -158,7 +158,7 @@ class enrol_flatfile_plugin extends enrol_plugin {
             if(! @unlink($filename)) {
                 $eventdata = new stdClass();
                 $eventdata->modulename        = 'moodle';
-                $eventdata->component         = 'course';
+                $eventdata->component         = 'enrol_flatfile';
                 $eventdata->name              = 'flatfile_enrolment';
                 $eventdata->userfrom          = get_admin();
                 $eventdata->userto            = get_admin();
@@ -177,7 +177,7 @@ class enrol_flatfile_plugin extends enrol_plugin {
             // Send mail to admin
             $eventdata = new stdClass();
             $eventdata->modulename        = 'moodle';
-            $eventdata->component         = 'course';
+            $eventdata->component         = 'enrol_flatfile';
             $eventdata->name              = 'flatfile_enrolment';
             $eventdata->userfrom          = get_admin();
             $eventdata->userto            = get_admin();
