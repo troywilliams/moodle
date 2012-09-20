@@ -1060,7 +1060,7 @@ class global_navigation extends navigation_node {
         }
 
         $mycourses = enrol_get_my_courses(NULL, 'visible DESC,sortorder ASC', $limit);
-        $showallcourses = (count($mycourses) == 0 || !empty($CFG->navshowallcourses));
+        $showallcourses = (!empty($CFG->navshowallcourses));
         // When checking if we are to show categories there is an additional override.
         // If the user is viewing a category then we will load it regardless of settings.
         // to ensure that the navigation is consistent.
