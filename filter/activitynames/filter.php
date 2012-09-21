@@ -104,6 +104,8 @@ class filter_activitynames extends moodle_text_filter {
 
 //This function is used to order module names from longer to shorter
 function filter_activitynames_comparemodulenamesbylength($a, $b)  {
+    if (!isset($a->name)) return 1;
+    if (!isset($b->name)) return -1;
     if (strlen($a->name) == strlen($b->name)) {
         return 0;
     }
