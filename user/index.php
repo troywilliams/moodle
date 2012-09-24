@@ -384,7 +384,7 @@
     if ($isfrontpage) {
         $select = "SELECT u.id, u.username, u.firstname, u.lastname,
                           u.email, u.city, u.country, u.picture,
-                          u.lang, u.timezone, u.maildisplay, u.imagealt,
+                          u.lang, u.timezone, u.maildisplay, u.imagealt, idnumber,
                           u.lastaccess$extrasql";
         $joins[] = "JOIN ($esql) e ON e.id = u.id"; // everybody on the frontpage usually
         if ($accesssince) {
@@ -394,7 +394,7 @@
     } else {
         $select = "SELECT u.id, u.username, u.firstname, u.lastname,
                           u.email, u.city, u.country, u.picture,
-                          u.lang, u.timezone, u.maildisplay, u.imagealt,
+                          u.lang, u.timezone, u.maildisplay, u.imagealt, idnumber,
                           COALESCE(ul.timeaccess, 0) AS lastaccess$extrasql";
         $joins[] = "JOIN ($esql) e ON e.id = u.id"; // course enrolled users only
         $joins[] = "LEFT JOIN {user_lastaccess} ul ON (ul.userid = u.id AND ul.courseid = :courseid)"; // not everybody accessed course yet
@@ -735,8 +735,15 @@
                 } else {
                     $profilelink = '<strong>'.fullname($user).'</strong>';
                 }
+                // UOW official user profile picture support
+                $officialpic = '';
+                if (has_capability('moodle/course:viewhiddenuserfields', $context)) {
+                    $officaluser = clone($user);
+                    $officaluser->picture = 'official';
+                    $officialpic = $OUTPUT->user_picture($officaluser, array('size' => 35, 'courseid'=>$course->id));
+                }
 
-                $data = array ($OUTPUT->user_picture($user, array('size' => 35, 'courseid'=>$course->id)), $profilelink);
+                $data = array ($officialpic . $OUTPUT->user_picture($user, array('size' => 35, 'courseid'=>$course->id)), $profilelink);
 
                 if ($mode === MODE_BRIEF) {
                     foreach ($extrafields as $field) {

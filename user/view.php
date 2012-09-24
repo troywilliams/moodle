@@ -207,6 +207,12 @@ if (is_mnet_remote_user($user)) {
 }
 
 echo '<div class="userprofilebox clearfix"><div class="profilepicture">';
+// UOW official user profile picture support
+if (has_capability('moodle/course:viewhiddenuserfields', $coursecontext)) {    // show the official/corporate image
+    $officaluser = clone($user);
+    $officaluser->picture = 'official';
+    echo $OUTPUT->user_picture($officaluser, array('size'=>100));
+}
 echo $OUTPUT->user_picture($user, array('size'=>100));
 echo '</div>';
 
