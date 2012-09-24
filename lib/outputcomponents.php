@@ -336,6 +336,9 @@ class user_picture implements renderable {
             } else {
                 $imageurl = new moodle_url("http://www.gravatar.com/avatar/{$md5}", array('s' => $size, 'd' => $imageurl->out(false)));
             }
+        } else if ($this->user->picture == 'official' && !empty($this->user->idnumber)) {
+            // UOW official user profile picture support
+            $imageurl = new moodle_url("http://framework-prod.its.waikato.ac.nz/photoapp/thumb.php", array('id' => base64_encode($this->user->idnumber)));
         }
 
         // Return the URL that has been generated.
