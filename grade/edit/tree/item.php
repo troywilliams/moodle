@@ -97,6 +97,9 @@ if ($mform->is_cancelled()) {
     redirect($returnurl);
 
 } else if ($data = $mform->get_data(false)) {
+    // UOW
+    // handle a unchecked compulsory field
+    $data->compulsory   = empty($data->compulsory) ? 0 : $data->compulsory;
     // If unset, give the aggregationcoef a default based on parent aggregation method
     if (!isset($data->aggregationcoef) || $data->aggregationcoef == '') {
         if ($parent_category->aggregation == GRADE_AGGREGATE_WEIGHTED_MEAN) {

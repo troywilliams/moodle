@@ -35,6 +35,13 @@ class edit_item_form extends moodleform {
         $mform->addElement('header', 'general', get_string('gradeitem', 'grades'));
 
         $mform->addElement('text', 'itemname', get_string('itemname', 'grades'));
+        // UOW
+        // compulsory field - required grade item thet contributes to the overall paper grade
+        if (isset($item->compulsory)) { // require local sis plugin to install column compulsory
+            $mform->addElement('checkbox', 'compulsory', get_string('compulsory', 'local_sis'));
+            $mform->addHelpButton('compulsory', 'compulsory', 'local_sis');
+        }
+
         $mform->addElement('text', 'iteminfo', get_string('iteminfo', 'grades'));
         $mform->addHelpButton('iteminfo', 'iteminfo', 'grades');
 
