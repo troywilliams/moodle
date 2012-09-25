@@ -239,6 +239,41 @@ echo '</div>';
 
 echo '<table class="list" summary="">';
 
+// UOW hack to display more fields when viewing profile in course
+if (! isset($hiddenfields['country']) && $user->country) {
+    print_row(get_string('country') . ':', get_string($user->country, 'countries'));
+}
+
+if (! isset($hiddenfields['city']) && $user->city) {
+    print_row(get_string('city') . ':', $user->city);
+}
+
+if (has_capability('moodle/site:viewuseridentity', $coursecontext)) {
+    $identityfields = array_flip(explode(',', $CFG->showuseridentity));
+    if (isset($CFG->showuseridentityforced) && is_array($CFG->showuseridentityforced)) {
+        $identityfields = array_flip($CFG->showuseridentityforced);
+    }
+} else {
+    $identityfields = array();
+}
+if (isset($identityfields['address']) && $user->address) {
+    print_row(get_string("address").":", "$user->address");
+}
+if (isset($identityfields['phone1']) && $user->phone1) {
+    print_row(get_string("phone").":", "$user->phone1");
+    }
+if (isset($identityfields['phone2']) && $user->phone2) {
+    print_row(get_string("phone2").":", "$user->phone2");
+}
+
+if (isset($identityfields['username']) && $user->username) {
+    print_row(get_string("username").":", "$user->username");
+}
+
+if (isset($identityfields['idnumber']) && $user->idnumber) {
+    print_row(get_string("idnumber").":", "$user->idnumber");
+}
+
 //checks were performed above that ensure that if we've got to here either the user
 //is viewing their own profile ($USER->id == $user->id) or $user is enrolled in the course
 if ($currentuser

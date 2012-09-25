@@ -142,6 +142,7 @@ if ($hassiteconfig
         $temp->add(new admin_setting_configmulticheckbox('showuseridentity',
                 get_string('showuseridentity', 'admin'),
                 get_string('showuseridentity_desc', 'admin'), array('email' => 1), array(
+                    'username'    => get_string('username'),
                     'idnumber'    => get_string('idnumber'),
                     'email'       => get_string('email'),
                     'phone1'      => get_string('phone'),
