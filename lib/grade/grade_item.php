@@ -44,8 +44,8 @@ class grade_item extends grade_object {
     public $required_fields = array('id', 'courseid', 'categoryid', 'itemname', 'itemtype', 'itemmodule', 'iteminstance',
                                  'itemnumber', 'iteminfo', 'idnumber', 'calculation', 'gradetype', 'grademax', 'grademin',
                                  'scaleid', 'outcomeid', 'gradepass', 'multfactor', 'plusfactor', 'aggregationcoef',
-                                 'sortorder', 'display', 'decimals', 'hidden', 'locked', 'locktime', 'needsupdate', 'timecreated',
-                                 'timemodified');
+                                 'sortorder', 'display', 'decimals', 'hidden', 'locked', 'locktime', 'needsupdate', 'compulsory',
+                                 'timecreated', 'timemodified');
 
     /**
      * The course this grade_item belongs to.
@@ -323,8 +323,8 @@ class grade_item extends grade_object {
      * @param array $params associative arrays varname=>value
      * @return array array of grade_item instances or false if none found.
      */
-    public static function fetch_all($params) {
-        return grade_object::fetch_all_helper('grade_items', 'grade_item', $params);
+    public static function fetch_all($params, $sort='') {
+        return grade_object::fetch_all_helper('grade_items', 'grade_item', $params, $sort);
     }
 
     /**
