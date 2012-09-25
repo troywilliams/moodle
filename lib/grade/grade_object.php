@@ -156,7 +156,7 @@ abstract class grade_object {
      * @static final protected
      * @return mixed array of object instances or false if not found
      */
-    public static function fetch_all_helper($table, $classname, $params) {
+    public static function fetch_all_helper($table, $classname, $params, $sort='') {
         $instance = new $classname();
 
         $classvars = (array)$instance;
@@ -184,7 +184,7 @@ abstract class grade_object {
         }
 
         global $DB;
-        $rs = $DB->get_recordset_select($table, $wheresql, $newparams);
+        $rs = $DB->get_recordset_select($table, $wheresql, $newparams, $sort);
         //returning false rather than empty array if nothing found
         if (!$rs->valid()) {
             $rs->close();
