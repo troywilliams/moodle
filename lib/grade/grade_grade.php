@@ -515,8 +515,8 @@ class grade_grade extends grade_object {
      * @param array $params associative arrays varname=>value
      * @return array array of grade_grade instances or false if none found.
      */
-    public static function fetch_all($params) {
-        return grade_object::fetch_all_helper('grade_grades', 'grade_grade', $params);
+    public static function fetch_all($params, $sort='') {
+        return grade_object::fetch_all_helper('grade_grades', 'grade_grade', $params, $sort);
     }
 
     /**
