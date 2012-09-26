@@ -7547,14 +7547,20 @@ class admin_setting_managewebservicetokens extends admin_setting {
         $table->data  = array();
 
         $tokenpageurl = "$CFG->wwwroot/$CFG->admin/webservice/tokens.php?sesskey=" . sesskey();
-
-        //TODO: in order to let the administrator delete obsolete token, split this request in multiple request or use LEFT JOIN
-
+        //allow siteamins to see and delete any
+        if (is_siteadmin()) {
+            $sql = "SELECT t.id, t.token, u.id AS userid, u.firstname, u.lastname, s.name, t.iprestriction, t.validuntil, s.id AS serviceid
+                     FROM {external_tokens} t, {user} u, {external_services} s
+                    WHERE t.tokentype = ? AND s.id = t.externalserviceid AND t.userid = u.id";
+            $params = array(EXTERNAL_TOKEN_PERMANENT);
+        } else {
+            $sql = "SELECT t.id, t.token, u.id AS userid, u.firstname, u.lastname, s.name, t.iprestriction, t.validuntil, s.id AS serviceid
+                      FROM {external_tokens} t, {user} u, {external_services} s
+                     WHERE t.creatorid=? AND t.tokentype = ? AND s.id = t.externalserviceid AND t.userid = u.id";
+            $params = array($USER->id, EXTERNAL_TOKEN_PERMANENT);
+        }
         //here retrieve token list (including linked users firstname/lastname and linked services name)
-        $sql = "SELECT t.id, t.token, u.id AS userid, u.firstname, u.lastname, s.name, t.iprestriction, t.validuntil, s.id AS serviceid
-                  FROM {external_tokens} t, {user} u, {external_services} s
-                 WHERE t.creatorid=? AND t.tokentype = ? AND s.id = t.externalserviceid AND t.userid = u.id";
-        $tokens = $DB->get_records_sql($sql, array($USER->id, EXTERNAL_TOKEN_PERMANENT));
+        $tokens = $DB->get_records_sql($sql, $params);
         if (!empty($tokens)) {
             foreach ($tokens as $token) {
                 //TODO: retrieve context
