@@ -207,6 +207,7 @@ $string['rootsettingroleassignments'] = 'Include user role assignments';
 $string['rootsettingactivities'] = 'Include activities';
 $string['rootsettingblocks'] = 'Include blocks';
 $string['rootsettingfilters'] = 'Include filters';
+$string['rootsettingsectionsummaries'] = 'Include section summaries';
 $string['rootsettingcomments'] = 'Include comments';
 $string['rootsettingcalendarevents'] = 'Include calendar events';
 $string['rootsettinguserscompletion'] = 'Include user completion details';
