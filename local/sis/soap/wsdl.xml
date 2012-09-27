@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="webservices_virtual_class_000000"
+                  targetNamespace="{$targetNamespace}"
+                  xmlns:tns="{$targetNamespace}"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  >
+        <wsdl:types>
+            <xs:schema xmlns="http://www.w3.org/2001/XMLSchema" 
+                       targetNamespace="{$targetNamespace}"
+                       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       version="SIS 0.5"
+                       elementFormDefault="qualified"
+                       attributeFormDefault="unqualified"
+                       >
+                    <!-- Generate ComplexTypes data-types -->
+                    <xs:complexType name="get_course_activity_by_idnumber.Type">
+                        <xs:sequence>
+                            <xs:element name="idnumber" type="xs:string"/><!-- e.g. MATH101-11 (HAM) -->
+                        </xs:sequence>
+                    </xs:complexType>
+                    
+                    <xs:complexType name="get_bulk_course_activity.Type">
+                        <xs:sequence>
+                            <xs:element name="datetime" type="xs:string"/><!-- e.g. 2011-01-01T00:00:00+0000 -->
+                        </xs:sequence>
+                    </xs:complexType>
+
+                    <xs:complexType name="activity_item.Type">
+                        <xs:sequence>
+                            <xs:choice>
+                                <xs:element name="student_id" type="xs:string"/>
+				<xs:element name="username" type="xs:string"/>
+                            </xs:choice>
+                            <xs:element name="activity_name" type="xs:string"/>
+                            <xs:element name="action_name" type="xs:string"/>
+                            <xs:element name="action_date" type="xs:dateTime"/>
+                            <xs:element name="action_count" type="xs:string" minOccurs="0"/>
+                            <xs:element name="paper_occurrence_code" type="xs:string" minOccurs="0"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                    <!-- container for activity_items -->
+                    <xs:complexType name="activities.Type">
+                        <xs:sequence>
+                            <xs:element ref="tns:activity_item" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+ 
+                    <xs:complexType name="get_course_assessments_by_idnumber.Type">
+                        <xs:sequence>
+                            <xs:element name="idnumber" type="xs:string"/><!-- e.g. MATH101-11 (HAM) -->
+                        </xs:sequence>
+                    </xs:complexType>
+                    
+                    <xs:complexType name="get_bulk_course_assessments.Type">
+                        <xs:sequence>
+                            <xs:element name="datetime" type="xs:string"/><!-- e.g. 2011-01-01T00:00:00+0000 -->
+                        </xs:sequence>
+                    </xs:complexType>
+
+                    <xs:complexType name="assessment_item.Type">
+                        <xs:sequence>
+                            <xs:element name="source_assessment_id" type="xs:string"/>
+                            <xs:element name="paper_occurrence_code" type="xs:string"/>
+                            <xs:element name="source_paper_occurrence_code" type="xs:string" minOccurs="0"/>
+                            <xs:element name="assessment_code" type="xs:string" minOccurs="0"/>
+                            <xs:element name="assessment_name" type="xs:string"/>
+                            <xs:element name="assessment_description" type="xs:string" minOccurs="0"/>
+                            <xs:element name="assessment_status" type="xs:string" minOccurs="0"/>
+                            <xs:element name="parent_source_assessment_id" type="xs:string" minOccurs="0"/>
+                            <xs:element name="compulsory" type="xs:string" minOccurs="0"/>
+                            <xs:element name="sort_order" type="xs:string" minOccurs="0"/>
+                            <xs:element name="assessment_type" type="xs:string" minOccurs="0"/>
+                            <xs:element name="weighting" type="xs:string" minOccurs="0"/>
+                            <xs:element name="maximum_mark" type="xs:string" minOccurs="0"/>
+                            <xs:element name="due_date" type="xs:string" minOccurs="0"/>
+                            <xs:element name="submit_location" type="xs:string" minOccurs="0"/>
+                            <xs:element name="submit_method" type="xs:string" minOccurs="0"/>
+                            <xs:element name="display_result" type="xs:string" minOccurs="0"/>
+                            <xs:element name="collection_date" type="xs:string" minOccurs="0"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                    <!-- container for assessment_items -->
+                    <xs:complexType name="assessments.Type">
+                        <xs:sequence>
+                            <xs:element ref="tns:assessment_item" minOccurs="0" maxOccurs="unbounded" />
+			</xs:sequence>
+                    </xs:complexType>
+                    
+                    <xs:complexType name="get_course_results_by_idnumber.Type">
+                        <xs:sequence>
+                            <xs:element name="idnumber" type="xs:string"/><!-- e.g. MATH101-11 (HAM) -->
+                        </xs:sequence>
+                    </xs:complexType>
+                    
+                    <xs:complexType name="get_bulk_course_results.Type">
+                        <xs:sequence>
+                            <xs:element name="datetime" type="xs:string"/><!-- e.g. 2011-01-01T00:00:00+0000 -->
+                        </xs:sequence>
+                    </xs:complexType>
+                   
+                    <xs:complexType name="result_item.Type">
+                        <xs:sequence>
+                            <!--<xs:choice>-->
+                            <xs:element name="student_id" type="xs:string" minOccurs="0"/>
+                            <xs:element name="username" type="xs:string"/>
+                            <!-- </xs:choice>-->
+                            <xs:element name="paper_occurrence_code" type="xs:string"/>
+                            <xs:element name="source_paper_occurrence_code" type="xs:string" minOccurs="0"/>
+                            <xs:element name="source_assessment_id" type="xs:string" />
+                            <xs:element name="grade" type="xs:string" />
+                            <xs:element name="mark" type="xs:string" minOccurs="0"/>
+                            <xs:element name="percentage" type="xs:string" minOccurs="0"/>
+                            <xs:element name="contribution" type="xs:string" minOccurs="0"/>
+                            <xs:element name="submitted_date" type="xs:string" minOccurs="0"/>
+                            <xs:element name="achieved_date" type="xs:string" minOccurs="0"/>
+                            <xs:element name="result_status" type="xs:string" minOccurs="0"/>
+			</xs:sequence>
+                    </xs:complexType>
+                    <!-- container for result_items -->
+                    <xs:complexType name="results.Type">
+                        <xs:sequence>
+                            <xs:element ref="tns:result_item" minOccurs="0" maxOccurs="unbounded" />
+                        </xs:sequence>
+                    </xs:complexType>
+
+             <!-- elements declaration -->
+             <xs:element name="get_course_activity_by_idnumber" type="tns:get_course_activity_by_idnumber.Type"/>
+             <xs:element name="get_bulk_course_activity" type="tns:get_bulk_course_activity.Type"/>
+             <xs:element name="activity_item" type="tns:activity_item.Type"/>
+             <xs:element name="activities" type="tns:activities.Type"/>
+             <xs:element name="get_course_assessments_by_idnumber" type="tns:get_course_assessments_by_idnumber.Type"/>
+             <xs:element name="get_bulk_course_assessments" type="tns:get_bulk_course_assessments.Type"/>
+             <xs:element name="assessment_item" type="tns:assessment_item.Type"/>
+             <xs:element name="assessments" type="tns:assessments.Type"/>
+             <xs:element name="get_course_results_by_idnumber" type="tns:get_course_results_by_idnumber.Type"/>
+             <xs:element name="get_bulk_course_results" type="tns:get_bulk_course_results.Type"/>
+             <xs:element name="result_item" type="tns:result_item.Type"/>
+             <xs:element name="results" type="tns:results.Type"/>
+
+            </xs:schema>
+	</wsdl:types>
+        <!-- Declaration of the WSDL message elements -->
+        <!-- activity -->
+        <wsdl:message name="get_course_activity_by_idnumber.Request">
+            <wsdl:part name="parameters" element="tns:get_course_activity_by_idnumber"/>
+        </wsdl:message>
+	<wsdl:message name="get_course_activity_by_idnumber.Response">
+            <wsdl:part name="response" element="tns:activities"/>
+	</wsdl:message>
+        <wsdl:message name="get_bulk_course_activity.Request">
+            <wsdl:part name="parameters" element="tns:get_bulk_course_activity"/>
+        </wsdl:message>
+	<wsdl:message name="get_bulk_course_activity.Response">
+            <wsdl:part name="response" element="tns:activities"/>
+	</wsdl:message>
+        <!-- assessments -->
+        <wsdl:message name="get_course_assessments_by_idnumber.Request">
+            <wsdl:part name="parameters" element="tns:get_course_assessments_by_idnumber" />
+        </wsdl:message>
+	<wsdl:message name="get_course_assessments_by_idnumber.Response">
+            <wsdl:part name="response" element="tns:assessments"/>
+	</wsdl:message>
+        <wsdl:message name="get_bulk_course_assessments.Request">
+            <wsdl:part name="parameters" element="tns:get_bulk_course_assessments" />
+        </wsdl:message>
+	<wsdl:message name="get_bulk_course_assessments.Response">
+            <wsdl:part name="response" element="tns:assessments"/>
+	</wsdl:message>
+        <!-- results -->
+        <wsdl:message name="get_course_results_by_idnumber.Request">
+            <wsdl:part name="parameters" element="tns:get_course_results_by_idnumber" />
+        </wsdl:message>
+	<wsdl:message name="get_course_results_by_idnumber.Response">
+            <wsdl:part name="response" element="tns:results"/>
+	</wsdl:message> 
+        <wsdl:message name="get_bulk_course_results.Request">
+            <wsdl:part name="parameters" element="tns:get_bulk_course_results" />
+        </wsdl:message>
+	<wsdl:message name="get_bulk_course_results.Response">
+            <wsdl:part name="response" element="tns:results"/>
+	</wsdl:message> 
+        <!-- Declaration of the WSDL portType elements -->
+        <wsdl:portType name="webservices_virtual_class_000000.Port">
+            <!-- activity -->
+            <wsdl:operation name="sis_get_course_activity_by_idnumber">
+                <wsdl:input message="tns:get_course_activity_by_idnumber.Request"/>
+                <wsdl:output message="tns:get_course_activity_by_idnumber.Response"/>
+            </wsdl:operation>
+            <wsdl:operation name="sis_get_bulk_course_activity">
+                <wsdl:input message="tns:get_bulk_course_activity.Request"/>
+                <wsdl:output message="tns:get_bulk_course_activity.Response"/>
+            </wsdl:operation>
+            <!-- assessment -->
+            <wsdl:operation name="sis_get_course_assessments_by_idnumber">
+                <wsdl:input message="tns:get_course_assessments_by_idnumber.Request"/>
+                <wsdl:output message="tns:get_course_assessments_by_idnumber.Response"/>
+            </wsdl:operation>
+            <wsdl:operation name="sis_get_bulk_course_assessments">
+                <wsdl:input message="tns:get_bulk_course_assessments.Request"/>
+                <wsdl:output message="tns:get_bulk_course_assessments.Response"/>
+            </wsdl:operation>
+            <!-- results -->
+            <wsdl:operation name="sis_get_course_results_by_idnumber">
+                <wsdl:input message="tns:get_course_results_by_idnumber.Request"/>
+                <wsdl:output message="tns:get_course_results_by_idnumber.Response"/>
+            </wsdl:operation>
+            <wsdl:operation name="sis_get_bulk_course_results">
+                <wsdl:input message="tns:get_bulk_course_results.Request"/>
+                <wsdl:output message="tns:get_bulk_course_results.Response"/>
+            </wsdl:operation>
+	</wsdl:portType>
+
+        <!-- Declaration of the WSDL binding elements -->
+	<wsdl:binding name="webservices_virtual_class_000000.Binding" type="tns:webservices_virtual_class_000000.Port">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+                <wsdl:operation name="sis_get_course_activity_by_idnumber">
+			<soap:operation style="document" /> 
+			<wsdl:input>
+				<soap:body use="literal" parts="parameters"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" parts="response"/>
+			</wsdl:output>
+		</wsdl:operation>
+                <wsdl:operation name="sis_get_bulk_course_activity">
+			<soap:operation style="document" /> 
+			<wsdl:input>
+				<soap:body use="literal" parts="parameters"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" parts="response"/>
+			</wsdl:output>
+		</wsdl:operation>
+                <wsdl:operation name="sis_get_course_assessments_by_idnumber">
+			<soap:operation style="document" />
+			<wsdl:input>
+				<soap:body use="literal" parts="parameters"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" parts="response"/>
+			</wsdl:output>
+		</wsdl:operation>
+                <wsdl:operation name="sis_get_bulk_course_assessments">
+			<soap:operation style="document" />
+			<wsdl:input>
+				<soap:body use="literal" parts="parameters"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" parts="response"/>
+			</wsdl:output>
+		</wsdl:operation>
+                <wsdl:operation name="sis_get_course_results_by_idnumber">
+			<soap:operation style="document" />
+			<wsdl:input>
+				<soap:body use="literal" parts="parameters"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" parts="response"/>
+			</wsdl:output>
+		</wsdl:operation>
+                <wsdl:operation name="sis_get_bulk_course_results">
+			<soap:operation style="document" />
+			<wsdl:input>
+				<soap:body use="literal" parts="parameters"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" parts="response"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+       <!-- Declaration of the WSDL service elements -->
+        <wsdl:service name="webservices_virtual_class_000000.Service">
+            <wsdl:port name="webservices_virtual_class_000000.Port" binding="tns:webservices_virtual_class_000000.Binding">
+                <soap:address location="{$serviceendpoint}"/>
+            </wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>
