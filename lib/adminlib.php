@@ -7573,7 +7573,7 @@ class admin_setting_managewebservicetokens extends admin_setting {
 
                 $validuntil = '';
                 if (!empty($token->validuntil)) {
-                    $validuntil = date("F j, Y"); //TODO: language support (look for moodle function)
+                    $validuntil = strftime("%A %d, %Y", $token->validuntil); //TODO: language support (look for moodle function)
                 }
 
                 $iprestriction = '';
