@@ -65,6 +65,7 @@ $string['docaccessrefused'] = 'You are not allowed to see the documentation for 
 $string['documentation'] = 'web service documentation';
 $string['downloadfiles'] = 'Can download files';
 $string['downloadfiles_help'] = 'If enabled, any user can download files with their security keys. Of course they are restricted to the files they are allowed to download in the site.';
+$string['editrestrictions'] = 'Edit restrictions on token: {$a->token}';
 $string['editaservice'] = 'Edit service';
 $string['editservice'] = 'Edit the service: {$a->name} (id: {$a->id})';
 $string['enabled'] = 'Enabled';

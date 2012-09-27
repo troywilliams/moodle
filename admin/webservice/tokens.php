@@ -100,6 +100,60 @@ switch ($action) {
         die;
         break;
 
+    case 'edit':
+        $mform = new web_service_token_form(null, array('action' => 'edit'));
+        $data = $mform->get_data();
+        if ($mform->is_cancelled()) {
+            redirect($tokenlisturl);
+        } else if ($data and confirm_sesskey()) {
+            ignore_user_abort(true);
+            unset($data->action);
+            unset($data->submitbutton);
+            // Update
+            if (!$DB->update_record('external_tokens', $data)) {
+                print_error('failed to update token');
+            }
+            redirect($tokenlisturl);
+        }
+        // Load form
+        if (empty($tokenid)) {
+            print_error('missing tokenid');
+            break;
+        }
+        $token = $DB->get_record('external_tokens', array('id'=>$tokenid));
+        if (!$token) {
+            print_error('no token found with tokenid: '.$tokenid);
+            break;
+        }
+        $user = $DB->get_record('user', array('id'=>$token->userid));
+        if (!$user) {
+            print_error('no user found for tokenid: '.$tokenid);
+            break;
+        }
+        $servicename = $DB->get_field('external_services', 'name', array('id'=>$token->externalserviceid));
+        if (!$servicename) {
+            print_error('no servicename found');
+            break;
+        }
+        $editdata = new stdClass;
+        $editdata->id = $token->id;
+        $editdata->token = $token->token;
+        $editdata->user = $user->id;
+        $editdata->userfullname = fullname($user);
+        $editdata->servicename = $servicename;
+        $editdata->iprestriction = $token->iprestriction;
+        $editdata->validuntil = $token->validuntil;
+        $mform->set_data((array)$editdata);
+        echo $OUTPUT->header();
+        echo $OUTPUT->heading(get_string('editrestrictions', 'webservice', $editdata));
+        if (!empty($errormsg)) {
+            echo $errormsg;
+        }
+        $mform->display();
+        echo $OUTPUT->footer();
+        die;
+        break;
+
     case 'delete':
         $token = $webservicemanager->get_created_by_user_ws_token($USER->id, $tokenid);
 

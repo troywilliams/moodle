@@ -113,7 +113,7 @@ class external_service_form extends moodleform {
         $mform->setType('id', PARAM_INT);
 
         if (!empty($service->id)) {
-            $buttonlabel = get_string('savechanges');
+            $buttonlabel = get_string('editaservice', 'webservice');
         } else {
             $buttonlabel = get_string('addaservice', 'webservice');
         }
@@ -185,55 +185,67 @@ class web_service_token_form extends moodleform {
         $mform = $this->_form;
         $data = $this->_customdata;
 
-        $mform->addElement('header', 'token', get_string('token', 'webservice'));
+        $mform->addElement('header', 'tokenlabel', get_string('token', 'webservice'));
 
-        if (empty($data->nouserselection)) {
+        if ($data['action'] == 'edit'){
+            $mform->addElement('static', 'userfullname', get_string('user'));
+            $mform->addElement('hidden', 'user');
+            $mform->setType('user', PARAM_INT);
+        } else {
+            if (empty($data->nouserselection)) {
 
-            //check if the number of user is reasonable to be displayed in a select box
-            $usertotal = $DB->count_records('user',
-                    array('deleted' => 0, 'suspended' => 0, 'confirmed' => 1));
+                //check if the number of user is reasonable to be displayed in a select box
+                $usertotal = $DB->count_records('user',
+                        array('deleted' => 0, 'suspended' => 0, 'confirmed' => 1));
 
-            if ($usertotal < 500) {
-                //user searchable selector - get all users (admin and guest included)
-                //user must be confirmed, not deleted, not suspended, not guest
-                $sql = "SELECT u.id, u.firstname, u.lastname
-                            FROM {user} u
-                            WHERE u.deleted = 0 AND u.confirmed = 1 AND u.suspended = 0 AND u.id != ?
-                            ORDER BY u.lastname";
-                $users = $DB->get_records_sql($sql, array($CFG->siteguest));
-                $options = array();
-                foreach ($users as $userid => $user) {
-                    $options[$userid] = $user->firstname . " " . $user->lastname;
+                if ($usertotal < 500) {
+                    //user searchable selector - get all users (admin and guest included)
+                    //user must be confirmed, not deleted, not suspended, not guest
+                    $sql = "SELECT u.id, u.firstname, u.lastname
+                                FROM {user} u
+                                WHERE u.deleted = 0 AND u.confirmed = 1 AND u.suspended = 0 AND u.id != ?
+                                ORDER BY u.lastname";
+                    $users = $DB->get_records_sql($sql, array($CFG->siteguest));
+                    $options = array();
+                    foreach ($users as $userid => $user) {
+                        $options[$userid] = $user->firstname . " " . $user->lastname;
+                    }
+                    $mform->addElement('searchableselector', 'user', get_string('user'), $options);
+                } else {
+                    //simple text box for username or user id (if two username exists, a form error is displayed)
+                    $mform->addElement('text', 'user', get_string('usernameorid', 'webservice'));
                 }
-                $mform->addElement('searchableselector', 'user', get_string('user'), $options);
-            } else {
-                //simple text box for username or user id (if two username exists, a form error is displayed)
-                $mform->addElement('text', 'user', get_string('usernameorid', 'webservice'));
-            }
-            $mform->addRule('user', get_string('required'), 'required', null, 'client');
-        }
-
-        //service selector
-        $services = $DB->get_records('external_services');
-        $options = array();
-        $systemcontext = get_context_instance(CONTEXT_SYSTEM);
-        foreach ($services as $serviceid => $service) {
-            //check that the user has the required capability
-            //(only for generation by the profile page)
-            if (empty($data->nouserselection)
-                    || empty($service->requiredcapability)
-                    || has_capability($service->requiredcapability, $systemcontext, $USER->id)) {
-                $options[$serviceid] = $service->name;
+                $mform->addRule('user', get_string('required'), 'required', null, 'client');
             }
         }
-        $mform->addElement('select', 'service', get_string('service', 'webservice'), $options);
-        $mform->addRule('service', get_string('required'), 'required', null, 'client');
 
+        if ($data['action'] == 'edit'){
+            $mform->addElement('static', 'servicename', get_string('servicename', 'webservice'));
+        } else {
+            //service selector
+            $services = $DB->get_records('external_services');
+            $options = array();
+            $systemcontext = get_context_instance(CONTEXT_SYSTEM);
+            foreach ($services as $serviceid => $service) {
+                //check that the user has the required capability
+                //(only for generation by the profile page)
+                if (empty($data->nouserselection)
+                        || empty($service->requiredcapability)
+                        || has_capability($service->requiredcapability, $systemcontext, $USER->id)) {
+                    $options[$serviceid] = $service->name;
+                }
+            }
+            $mform->addElement('select', 'service', get_string('service', 'webservice'), $options);
+            $mform->addRule('service', get_string('required'), 'required', null, 'client');
+        }
 
         $mform->addElement('text', 'iprestriction', get_string('iprestriction', 'webservice'));
 
         $mform->addElement('date_selector', 'validuntil',
                 get_string('validuntil', 'webservice'), array('optional' => true));
+
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
 
         $mform->addElement('hidden', 'action');
         $mform->setType('action', PARAM_ACTION);

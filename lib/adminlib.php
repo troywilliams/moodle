@@ -7565,6 +7565,9 @@ class admin_setting_managewebservicetokens extends admin_setting {
             foreach ($tokens as $token) {
                 //TODO: retrieve context
 
+                $edit = "<a href=\"".$tokenpageurl."&amp;action=edit&amp;tokenid=".$token->id."\">";
+                $edit .= get_string('edit')."</a>";
+
                 $delete = "<a href=\"".$tokenpageurl."&amp;action=delete&amp;tokenid=".$token->id."\">";
                 $delete .= get_string('delete')."</a>";
 
@@ -7602,7 +7605,7 @@ class admin_setting_managewebservicetokens extends admin_setting {
                     }
                 }
 
-                $table->data[] = array($token->token, $useratag, $token->name, $iprestriction, $validuntil, $delete);
+                $table->data[] = array($token->token, $useratag, $token->name, $iprestriction, $validuntil, $edit.'&nbsp;'.$delete);
             }
 
             $return .= html_writer::table($table);
