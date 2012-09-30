@@ -63,6 +63,10 @@ class enrol_meta_plugin extends enrol_plugin {
             return NULL;
         }
         // multiple instances supported - multiple parent courses linked
+        $plugin = enrol_get_plugin('meta');
+        if ($plugin->get_config('addmultiple')) {
+            return new moodle_url('/enrol/meta/addmultiple.php', array('id'=>$courseid));
+        }
         return new moodle_url('/enrol/meta/addinstance.php', array('id'=>$courseid));
     }
 

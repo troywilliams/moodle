@@ -696,3 +696,75 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
 
     return 0;
 }
+
+/**
+ * Helper function to get a limited set of courses based on search critera.
+ * Returns an object with extra information so can be easily used with
+ * ajax.
+ *
+ * @global type $DB
+ * @param type $courseid
+ * @param type $searchstring
+ * @param type $anywhere
+ * @param type $limit
+ * @return stdClass $result
+ */
+function enrol_meta_multiple_search($courseid, $searchstring, $anywhere = true, $limit=250) {
+    global $DB;
+
+    $result = new stdClass();
+    $result->found = 0;
+    $result->limit = $limit;
+    $result->courses = array();
+
+    // build sql for exclude courses
+    $existing = $DB->get_records('enrol', array('enrol'=>'meta', 'courseid'=>$courseid), '', 'customint1, id');
+    $excludes = array_merge(array_keys($existing), array(SITEID, $courseid));
+    list($excludesql, $excludeparams) = $DB->get_in_or_equal($excludes, SQL_PARAMS_NAMED, 'ex', false);
+    $excludesql = 'c.id '.$excludesql;
+    // build search sql
+    $searchsql = '';
+    $searchparams = array();
+    if (!empty($searchstring)) {
+        if ($anywhere) {
+            $searchstring = '%' . $searchstring . '%';
+        } else {
+            $searchstring = $searchstring . '%';
+        }
+        $searchfields = array('c.shortname', 'c.fullname');
+        for ($i = 0; $i < count($searchfields); $i++) {
+            $searchlikes[$i] = $DB->sql_like($searchfields[$i], ":s{$i}", false, false);
+            $searchparams["s{$i}"] = $searchstring;
+        }
+        $searchsql = ' AND (' .implode(' OR ', $searchlikes).')';
+    }
+    // put all the param together
+    $params = $excludeparams + $searchparams;
+    // count statement
+    $countsql = "SELECT
+                  COUNT(1)
+                   FROM {course} c
+                  WHERE $excludesql $searchsql";
+
+    $found = $DB->count_records_sql($countsql, $params);
+    $result->found = $found;
+    if ($found > $limit) {
+        $result->courses = array(); // don't return list of courses
+    } else {
+        // records get statement
+        $fields = 'c.id, c.shortname, c.fullname, c.visible';
+        $sql = "SELECT $fields
+                  FROM {course} c
+                 WHERE $excludesql $searchsql
+              ORDER BY shortname ASC";
+        $courses = $DB->get_records_sql($sql, $params, 0, $limit);
+        foreach ($courses as $c) {
+            if (!has_capability('enrol/meta:selectaslinked', context_course::instance($c->id))) {
+                continue;
+            }
+            $c->fullname = shorten_text(format_string($c->fullname), 80, true);
+            $result->courses[$c->id] = $c;
+        }
+    }
+    return $result;
+}

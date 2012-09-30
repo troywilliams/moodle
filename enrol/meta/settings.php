@@ -38,6 +38,9 @@ if ($ADMIN->fulltree) {
         }
         $settings->add(new admin_setting_configmultiselect('enrol_meta/nosyncroleids', get_string('nosyncroleids', 'enrol_meta'), get_string('nosyncroleids_desc', 'enrol_meta'), array(), $allroles));
 
+        $settings->add(new admin_setting_configcheckbox('enrol_meta/addmultiple', get_string('addmultiple', 'enrol_meta'), get_string('addmultiple_desc', 'enrol_meta'), 1));
+        $settings->add(new admin_setting_configtext('enrol_meta/addmultiple_rowlimit', get_string('addmultiple_rowlimit', 'enrol_meta'), get_string('addmultiple_rowlimit_desc', 'enrol_meta'), 250, PARAM_INT));
+
         $settings->add(new admin_setting_configcheckbox('enrol_meta/syncall', get_string('syncall', 'enrol_meta'), get_string('syncall_desc', 'enrol_meta'), 1));
 
         $options = array(
