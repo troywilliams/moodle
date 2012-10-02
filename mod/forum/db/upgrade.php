@@ -55,6 +55,24 @@ function xmldb_forum_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2007101511, 'forum');
     }
 
+    if ($oldversion < 2007101513) {
+        $table = new xmldb_table('forum');
+        $field = new xmldb_field('anonymous');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'blockperiod');
+
+        if(!$dbman->field_exists($table,$field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('forum_posts');
+        $field = new xmldb_field('anonymous');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'mailnow');
+
+        if(!$dbman->field_exists($table,$field)) {
+            $dbman->add_field($table, $field);
+        }
+    }
+
     if ($oldversion < 2008072800) {
     /// Define field completiondiscussions to be added to forum
         $table = new xmldb_table('forum');
@@ -337,7 +355,24 @@ function xmldb_forum_upgrade($oldversion) {
 
         upgrade_mod_savepoint(true, 2011052300, 'forum');
     }
+    // Check if anonymous fields are setup and create if needed
+    if ($oldversion < 2011052301) {
+        $table = new xmldb_table('forum');
+        $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'intro');
 
+        if(!$dbman->field_exists($table,$field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('forum_posts');
+        $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'mailnow');
+
+        if(!$dbman->field_exists($table,$field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2011052301, 'forum');
+    }
     // Moodle v2.1.0 release upgrade line
     // Put any upgrade step following this
 

@@ -220,7 +220,8 @@ function forum_rss_feed_posts_sql($forum, $cm, $newsince=0) {
                  p.message AS postmessage,
                  p.created AS postcreated,
                  p.messageformat AS postformat,
-                 p.messagetrust AS posttrust
+                 p.messagetrust AS posttrust,
+                 p.anonymous
             FROM {forum_discussions} d,
                {forum_posts} p,
                {user} u
@@ -323,7 +324,14 @@ function forum_rss_feed_contents($forum, $sql, $context) {
             }
             $user->firstname = $rec->userfirstname;
             $user->lastname = $rec->userlastname;
-            $item->author = fullname($user);
+            $item->author = $forum->anonymous == 1 ? true : ($rec->anonymous == 2 ? $rec->anonymous : false);
+            if ($rec->anonymous) {
+                $item->author = $CFG->forum_anonymousname;
+            } else {
+                $user->firstname = $rec->userfirstname;
+                $user->lastname = $rec->userlastname;
+                $item->author = fullname($user);
+            }
             $item->pubdate = $rec->postcreated;
             if ($isdiscussion) {
                 $item->link = $CFG->wwwroot."/mod/forum/discuss.php?d=".$rec->discussionid;
