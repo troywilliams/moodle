@@ -1,0 +1,9 @@
+<?php
+    global $COURSE, $SITE;
+    if ($COURSE->id === $SITE->id) {
+       notify('Cannot configure Preferred Portal here! Must be done from inside Moodle Paper.');
+    } else {
+       $url = 'http://framework-prod.its.waikato.ac.nz/MyPapers/MyPortal.php?paper='.$COURSE->shortname;
+       echo '<iframe class="block_mypapers" src ="'.$url.'" width="100%" height="300"></iframe>';
+    }
+?>
