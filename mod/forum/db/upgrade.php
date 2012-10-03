@@ -356,7 +356,7 @@ function xmldb_forum_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2011052300, 'forum');
     }
     // Check if anonymous fields are setup and create if needed
-    if ($oldversion < 2011052301) {
+    if ($oldversion < 2011112901) {
         $table = new xmldb_table('forum');
         $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'intro');
 
@@ -371,7 +371,7 @@ function xmldb_forum_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        upgrade_mod_savepoint(true, 2011052301, 'forum');
+        upgrade_mod_savepoint(true, 2011112901, 'forum');
     }
     // Moodle v2.1.0 release upgrade line
     // Put any upgrade step following this
