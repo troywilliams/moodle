@@ -1,0 +1,39 @@
+/* 
+    Document   : style.css
+    Created on : Jul 1, 2010, 7:47:18 PM
+    Author     : sbourget
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+
+.pcast-bold {
+    font-weight: bold;
+}
+
+.pcast-header {
+    font-weight: bold;
+    width: 25%;
+}
+
+.pcast-data {
+    width: 75%;
+}
+.pcast-comments {
+    text-align: center;
+    margin:0 auto;
+}
+
+.pcast-center {
+    text-align: center;
+}
+
+.pcast-menu20 {
+    width:20%;
+    text-align:center;
+}
+
+.pcast-menu60 {
+    width:60%;
+    text-align:center;
+}
