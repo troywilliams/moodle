@@ -1,0 +1,14 @@
+
+.block_new_titles .link {
+    border-top:1px solid;
+    border-top-color:#DDDDDD;
+    padding-bottom:5px;
+    font-size:0.82em;
+    display:block; padding-left: 20px; 
+    background: transparent url([[pix:block_new_titles|icon]]) no-repeat;
+
+
+}
+.block_new_titles .title {
+  font-size:1.0em;
+}
