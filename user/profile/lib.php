@@ -282,12 +282,10 @@ class profile_field_base {
                 if ($this->userid == $USER->id) {
                     return true;
                 } else {
-                    return has_capability('moodle/user:viewalldetails',
-                            get_context_instance(CONTEXT_USER, $this->userid));
+                    return false;
                 }
             default:
-                return has_capability('moodle/user:viewalldetails',
-                        get_context_instance(CONTEXT_USER, $this->userid));
+                return false;
         }
     }
 
