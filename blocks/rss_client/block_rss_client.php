@@ -143,6 +143,10 @@
             $feed->set_cache_duration($CFG->block_rss_client_timeout*60);
         }
 
+        if (isset($CFG->block_rss_client_cacheduration)) {
+            $feed->set_cache_duration($CFG->block_rss_client_cacheduration);
+        }
+
         if(debugging() && $feed->error()){
             return '<p>'. $feedrecord->url .' Failed with code: '.$feed->error().'</p>';
         }
@@ -309,6 +313,9 @@
             // fetching feeds if possible..
             $feed->set_timeout(40);
             $feed->set_cache_duration(0);
+            if (isset($CFG->block_rss_client_cacheduration)) {
+                $feed->set_cache_duration($CFG->block_rss_client_cacheduration);
+            }
             $feed->set_feed_url($rec->url);
             $feed->init();
 
