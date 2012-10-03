@@ -373,6 +373,20 @@ function xmldb_forum_upgrade($oldversion) {
 
         upgrade_mod_savepoint(true, 2011112901, 'forum');
     }
+    // UOW - check for postnum field in forum_posts, if not create and rename reference
+    if ($oldversion < 2011112902) {
+        $table = new xmldb_table('forum_posts');
+        $field = new xmldb_field('postnum', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'anonymous');
+        // check old postnum exists
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // rename old postname to reference
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->rename_field($table, $field, 'reference');
+        }
+        upgrade_mod_savepoint(true, 2011112902, 'forum');
+    }
     // Moodle v2.1.0 release upgrade line
     // Put any upgrade step following this
 

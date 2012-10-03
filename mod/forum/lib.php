@@ -3162,12 +3162,16 @@ function forum_make_mail_post($course, $cm, $forum, $discussion, $post, $userfro
  */
 function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=false, $reply=false, $link=false,
                           $footer="", $highlight="", $postisread=null, $dummyifcantsee=true, $istracked=null, $return=false) {
-    global $USER, $CFG, $OUTPUT;
+    global $USER, $CFG, $DB, $OUTPUT;
 
     require_once($CFG->libdir . '/filelib.php');
 
     // String cache
     static $str;
+
+    // UOW - reference number for post
+    static $displaymode;
+    $displaymode = get_user_preferences('forum_displaymode', $CFG->forum_displaymode);
 
     $modcontext = get_context_instance(CONTEXT_MODULE, $cm->id);
 
@@ -3399,6 +3403,12 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
         $by->name = html_writer::link($postuser->profilelink, $postuser->fullname);
     }
     $by->date = userdate($post->modified);
+
+    // UOW - reference number for post
+    if ($displaymode == FORUM_MODE_FLATNEWEST || $displaymode == FORUM_MODE_FLATOLDEST) {
+        $output .= html_writer::tag('span', get_string('reference', 'forum', $post->reference), array('class'=>'reference'));
+    }
+
     $output .= html_writer::tag('div', get_string('bynameondate', 'forum', $by), array('class'=>'author'));
 
     $output .= html_writer::end_tag('div'); //topic
@@ -3437,6 +3447,31 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
         // Prepare whole post
         $postclass    = 'fullpost';
         $postcontent  = format_text($post->message, $post->messageformat, $options, $course->id);
+        /// UOW - quote parent post in reply
+        $displaymode  = get_user_preferences('forum_displaymode', $CFG->forum_displaymode);
+        if ($post->parent != 0 && ($displaymode == FORUM_MODE_FLATNEWEST || $displaymode == FORUM_MODE_FLATOLDEST)) {
+            $sql = "SELECT u.firstname, u.lastname, u.email, u.idnumber, u.username, p.*
+                    FROM {$CFG->prefix}forum_posts p
+                    INNER JOIN {$CFG->prefix}user u ON p.userid = u.id
+                    WHERE p.id = {$post->parent}";
+            $parentpost = $DB->get_record_sql($sql);
+            if ($parentpost) {
+                $quoteblock = '';
+                $parentpost->anonymous = $forum->anonymous == 1 ? true : ($forum->anonymous == 2 ? $parentpost->anonymous : false);
+                if ($parentpost->anonymous) {
+                    $a->name = isset($CFG->forum_anonymousname) ? $CFG->forum_anonymousname : get_string('anonymous', 'forum');
+                } else {
+                    $a->name = fullname($parentpost, $cm->cache->caps['moodle/site:viewfullnames']);
+                }
+                $a->date = userdate($parentpost->created);
+                $a->link = "discuss.php?d=$parentpost->discussion#p$parentpost->id";
+                $replyfrom  = html_writer::tag('div', get_string('replyfrom', 'forum', $a), array('class'=>'quoteheading'));
+                $quoteblock .= html_writer::tag('blockquote', shorten_text($parentpost->message, 350));
+                $postcontent = $replyfrom . $quoteblock . $postcontent;
+
+            }
+        }
+        /// END: UOW
         if (!empty($highlight)) {
             $postcontent = highlight($highlight, $postcontent);
         }
@@ -4262,7 +4297,10 @@ function forum_add_new_post($post, $mform, &$message) {
     $post->userid     = $USER->id;
     $post->attachment = "";
     $post->anonymous  = $forum->anonymous == 1 ? 1 : ($forum->anonymous == 2 ? (int)$post->anonymous : 0);
-
+     // UOW - reference number for post
+    $reference = $DB->get_field('forum_posts', 'MAX(reference) AS reference', array('discussion'=>$post->discussion));
+    $post->reference = $reference == 0 ? 1 : $reference + 1;
+    
     $post->id = $DB->insert_record("forum_posts", $post);
     $post->message = file_save_draft_area_files($post->itemid, $context->id, 'mod_forum', 'post', $post->id, array('subdirs'=>true), $post->message);
     $DB->set_field('forum_posts', 'message', $post->message, array('id'=>$post->id));
