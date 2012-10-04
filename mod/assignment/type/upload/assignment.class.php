@@ -714,6 +714,9 @@ class assignment_upload extends assignment_base {
         $submission = $this->get_submission($userid);
         $this->update_grade($submission);
         $this->email_teachers($submission);
+        $this->email_student($submission);
+        $returnurl = new moodle_url('/mod/assignment/receipt.php', array('id' =>$this->cm->id,
+                                                                         'submission'=>$submission->id));
 
         // Trigger assessable_files_done event to show files are complete
         $eventdata = new stdClass();
@@ -1145,6 +1148,9 @@ class assignment_upload extends assignment_base {
      */
     public function download_submissions() {
         global $CFG,$DB;
+        // UOW boost resources for large volumes;
+        set_time_limit(5 * 60);
+        raise_memory_limit(MEMORY_EXTRA);
         require_once($CFG->libdir.'/filelib.php');
         $submissions = $this->get_submissions('','');
         if (empty($submissions)) {
@@ -1170,17 +1176,39 @@ class assignment_upload extends assignment_base {
             $a_userid = $submission->userid; //get userid
             if ((groups_is_member($groupid,$a_userid)or !$groupmode or !$groupid)) {
                 $a_assignid = $submission->assignment; //get name of this assignment for use in the file names.
-                $a_user = $DB->get_record("user", array("id"=>$a_userid),'id,username,firstname,lastname'); //get user firstname/lastname
+                $a_user = $DB->get_record("user", array("id"=>$a_userid),'id,idnumber,firstname,lastname'); //get user firstname/lastname
+                $idnumber = empty($a_user->idnumber) ? 'noidnumber' : $a_user->idnumber; // UOW receipts
 
                 $files = $fs->get_area_files($this->context->id, 'mod_assignment', 'submission', $submission->id, "timemodified", false);
                 foreach ($files as $file) {
                     //get files new name.
                     $fileext = strstr($file->get_filename(), '.');
                     $fileoriginal = str_replace($fileext, '', $file->get_filename());
-                    $fileforzipname =  clean_filename(fullname($a_user) . "_" . $fileoriginal."_".$a_userid.$fileext);
+                    $fileforzipname =  clean_filename(fullname($a_user).'_'.$idnumber.'-'.$fileoriginal.$fileext);
                     //save file name to array for zipping.
                     $filesforzipping[$fileforzipname] = $file;
                 }
+                // UOW add receipts to downloadable zip
+                $receiptfilename = clean_filename(fullname($a_user).'_'.$idnumber.'_coversheet.rtf');
+                $receiptfileinfo = array('contextid'=>$this->context->id,
+                                         'component'=>'mod_assignment',
+                                         'filearea'=>'receipt',
+                                         'itemid'=>$submission->id,
+                                         'filepath' => '/',
+                                         'filename' => $receiptfilename,
+                                         'userid'=> $a_userid);
+                $coversheet = $this->get_coversheet_rtf($submission);
+                $receiptfile = $fs->get_file($receiptfileinfo['contextid'],$receiptfileinfo['component'], $receiptfileinfo['filearea'],$receiptfileinfo['itemid'],$receiptfileinfo['filepath'],$receiptfileinfo['filename']);
+                if (! $receiptfile) { // No entry in file pool, let's create one.
+                    $receiptfile = $fs->create_file_from_string($receiptfileinfo, $coversheet);
+                } else if ($this->assignment->timemodified > $receiptfile->get_timemodified()){
+                    // freshen, on off chance something changed in assignment by tutor.
+                    $fs->delete_area_files($receiptfileinfo['contextid'],$receiptfileinfo['component'], $receiptfileinfo['filearea'],$receiptfileinfo['itemid']);
+                    $receiptfile = $fs->create_file_from_string($receiptfileinfo, $coversheet);
+                }
+                $filesforzipping[$receiptfilename] = $receiptfile;
+                // End UOW
+
             }
         } // end of foreach loop
 
@@ -1192,6 +1220,7 @@ class assignment_upload extends assignment_base {
         if ($zipfile = assignment_pack_files($filesforzipping)) {
             send_temp_file($zipfile, $filename); //send file and delete after sending.
         }
+        reduce_memory_limit(MEMORY_STANDARD); // UOW
     }
 
     /**
@@ -1204,6 +1233,41 @@ class assignment_upload extends assignment_base {
      */
     public function is_submitted_with_required_data($submission) {
         return ($submission->timemodified AND $submission->data2);
+    }
+
+    /**************************/
+    /*   UOW CUSTOM METHODS    /
+    /**************************/
+    /**
+     * Allow the verify file page for assignments using the upload type.
+     */
+    function can_verify_submissions() {
+        return true;
+    }
+    /**
+     * Email students an confirmation that their assignment has been submitted
+     *
+     * @param array $submission
+     * @todo route through messageapi, drop in user private area
+     */
+    function email_student($submission) {
+        global $CFG, $DB;
+
+        if ($user = $DB->get_record('user', array('id'=>$submission->userid))) {
+            if ($submission->teacher) {
+                $from = $DB->get_record('user', array('id'=>$submission->teacher));
+            } else {
+                $from = get_admin();
+            }
+            $bodyhtml = $this->get_coversheet_html($submission);
+            $bodytext = html_to_text($bodyhtml); // should use a method $this->get_coversheet_text($submission). stop gap!
+            $bodyrtf = $this->get_coversheet_rtf($submission);
+            $tempbasename = 'assfile-' . sha1($bodyrtf);
+            $tempfile = '/temp/' . $tempbasename;
+            file_put_contents($CFG->dataroot . $tempfile, $bodyrtf);
+            email_to_user($user, $from, get_string('receiptsubject', 'assignment'), $bodytext, $bodyhtml, $tempfile, 'assignment-receipt.rtf');
+            @unlink($CFG->dataroot . $tempfile);
+        }
     }
 }
 
