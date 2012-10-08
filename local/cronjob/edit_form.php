@@ -5,7 +5,7 @@
  *
  * Cronjob Plugin: Add, edit and delete cron jobs 
  *
- * This form class is part of the moodle form’s 
+ * This form class is part of the moodle forms
  * API to handle requests to add and edit crons
  *
  * 2007-08-20  File created.
