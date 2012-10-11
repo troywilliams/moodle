@@ -33,7 +33,7 @@
 class ou_memcache_session extends session_stub {
 
     protected function init_session_storage() {
-
+        global $CFG;
         ini_set('session.save_handler', 'memcache');
         ini_set('memcache.hash_strategy', 'consistent');
         /* Recommend below is set and adjusted in php.ini
