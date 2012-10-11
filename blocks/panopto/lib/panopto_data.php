@@ -127,6 +127,11 @@ class panopto_data
                     $moodlepapers = $DB->get_records('block_panopto_foldermap', array('panopto_id'=>$panoptofolderid));
                     foreach ($moodlepapers as $moodlepaper) {
                         $papercontext = get_context_instance(CONTEXT_COURSE, $moodlepaper->moodleid);
+                        // Block exists in course?
+                        $params = array('blockname'=>'panopto', 'parentcontextid'=>$papercontext->id);
+                        if (!$DB->record_exists('block_instances', $params)) {
+                           continue; // skipping students from this paper as no block exists.
+                        }
                         // moodle/course:view capability has different meaning in 2.x
                         $paperstudents = get_users_by_capability($papercontext, 'block/panopto:view', 'u.id, u.username, u.firstname, u.lastname, u.email');
                         $students = array_merge($students, $paperstudents);

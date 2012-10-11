@@ -268,6 +268,9 @@ class block_panopto extends block_base
     /**
      * Syncs a user list from Moodle to Panopto for particular course
      *
+     * Nasty hack users will go through into public folders as well. Would be
+     * nice to use new API 4.x
+     *
      * @global object $DB
      * @param int $courseid
      * @return boolean sucess
@@ -275,35 +278,42 @@ class block_panopto extends block_base
     function sync_user_list_for_courseid($courseid) {
         global $DB;
 
-        if (!$DB->record_exists('course', array('id'=>$courseid))) {
-            mtrace("ERROR: could not sync users for courseid# ".$courseid." does not exist");
-            return false;
+        $coursefoldermap = $DB->get_record('block_panopto_foldermap', array('moodleid'=>$courseid), '*', MUST_EXIST);
+        $coursecontext = context_course::instance($courseid);
+        // check if block on exists
+        $params = array('blockname'=>'panopto', 'parentcontextid'=>$coursecontext->id);
+        if (!$DB->record_exists('block_instances', $params)) {
+            mtrace('[courseid#'.$courseid.'] block deleted');
+            $DB->set_field('block_panopto_foldermap', 'syncuserlist', 0, array('moodleid'=>$courseid));
+            return;
         }
-        $panoptodata = new panopto_data($courseid);
-        $panoptocourse = $panoptodata->get_course();
-        /**
-         * Here comes the crazy hack.. 3.x API
-         * We need to check if paper is linked to a shared Panopto folder, and get original Moodle
-         * courseid if that the case, otherwise users will get removed.
-         */
-        if (!empty($panoptocourse->ExternalCourseID)) {
-            preg_match('/\:(\d.+)/', $panoptocourse->ExternalCourseID, $matches);
-            if (isset($matches[1])) {
-                $parentcourseid = (int) $matches[1];
-                echo 'Found parent '.$parentcourseid."\n";
-                if ($courseid != $parentcourseid) {
-                    $panoptodata = new panopto_data($parentcourseid);
-                    $panoptocourse = $panoptodata->get_course();
+
+        $mappings = $DB->get_records('block_panopto_foldermap', array('panopto_id'=>$coursefoldermap->panopto_id), 'id ASC');
+        $master = array_shift($mappings); // pulling first created record, only way.
+
+        $panoptodata = new panopto_data($master->moodleid);
+        $provisioninginfo = $panoptodata->get_provisioning_info();
+
+        mtrace('[courseid#'.$coursefoldermap->moodleid.']'.
+               '[master courseid#'.$master->moodleid.']'.
+               '{'.$coursefoldermap->panopto_id.'}'.
+               ' '.$provisioninginfo->LongName);
+
+        $provisioneddata = $panoptodata->provision_course($provisioninginfo);
+        if (empty($provisioneddata)) {
+            mtrace("ERROR: could not sync users to panopto folder: ".$panoptocourse->PublicID);
+            return false;
+        } else {
+            $DB->set_field('block_panopto_foldermap', 'syncuserlist', 0, array('moodleid'=>$courseid));
+            if (CLI_SCRIPT) {
+                mtrace('creators');
+                foreach($provisioninginfo->Instructors as $staff) {
+                    mtrace($staff->UserKey);
                 }
-            }
-            if ($panoptocourse->PublicID == $panoptodata->sessiongroup_id) {
-                $provisioninginfo = $panoptodata->get_provisioning_info();
-                $provisioneddata = $panoptodata->provision_course($provisioninginfo);
-                if (empty($provisioneddata)) {
-                    mtrace("ERROR: could not sync users to panopto folder: ".$panoptocourse->PublicID);
-                    return false;
+                mtrace('viewers');
+                foreach($provisioninginfo->Students as $student) {
+                    mtrace($student->UserKey);
                 }
-                $DB->set_field('block_panopto_foldermap', 'syncuserlist', 0, array('moodleid'=>$courseid));
             }
         }
         return true;
@@ -330,7 +340,6 @@ class block_panopto extends block_base
         }
         $mappings = $DB->get_records('block_panopto_foldermap', $params);
         foreach ($mappings as $mapping) {
-            mtrace('sync users - courseid# '.$mapping->moodleid. ' panopto folder hash# '.$mapping->panopto_id);
             $this->sync_user_list_for_courseid($mapping->moodleid);
         }
         return true;
