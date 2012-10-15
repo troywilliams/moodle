@@ -8,7 +8,7 @@ if ($ADMIN->fulltree) {
 
     global $PAGE;
     $PAGE->requires->js('/mod/liveclassroom/js/configcheck.js');
-    $PAGE->requires->css('/mod/liveclassroom/css/StyleSheet.css');
+    //$PAGE->requires->css('/mod/liveclassroom/css/StyleSheet.css');
     $jsstrs = array('wrongconfigurationURLunavailable','emptyAdminUsername','emptyAdminPassword','trailingSlash','trailingHttp');
     $PAGE->requires->strings_for_js($jsstrs, 'liveclassroom');
 
