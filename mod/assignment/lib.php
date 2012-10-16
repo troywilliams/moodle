@@ -2458,7 +2458,7 @@ class assignment_base {
         $assignment = $this->assignment;
         $user = $DB->get_record('user', array('id'=>$submission->userid));
         // Get list of tutors
-        $managerroles = split(',', $CFG->coursecontact);
+        $managerroles = explode(',', $CFG->coursecontact);
 
         $teachers = get_role_users($managerroles, get_context_instance(CONTEXT_COURSE, $this->course->id),
                                      true, '', 'r.sortorder ASC, u.lastname ASC', false);
