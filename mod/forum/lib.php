@@ -8298,9 +8298,12 @@ function forum_get_posts_by_user($user, array $courses, $musthaveaccess = false,
 
     $sql = "FROM {forum_posts} p
             JOIN {forum_discussions} d ON d.id = p.discussion
+            JOIN {forum} f ON f.id = d.forum
             JOIN {user} u ON u.id = p.userid
            WHERE ($wheresql)
-             AND p.userid = :userid ";
+             AND p.userid = :userid
+             AND f.anonymous != 1
+             AND (f.anonymous = 2 AND p.anonymous != 1)";
     $orderby = "ORDER BY p.modified DESC";
     $forumsearchparams['userid'] = $user->id;
 
