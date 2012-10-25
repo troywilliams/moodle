@@ -137,7 +137,7 @@ foreach($courses as $course) {
         break;
     }
     // we dont process courses that dont contain the coursename string
-    if ($courseNameContains && (!stripos($course->shortname,$courseNameContains)))  {
+    if ($courseNameContains && (stripos($course->shortname, $courseNameContains) === false))  {
         debug($DEBUG_MAIN, 'skipping', 'shortname does not contain: '.$courseNameContains, $course->id, $course->shortname);
         continue;
     }
