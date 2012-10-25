@@ -56,6 +56,8 @@ if (!$singlegroup) {
         case 'ajax_getmembersingroup':
         case 'showgroupsettingsform':
         case 'showaddmembersform':
+        case 'showadvancedaddmembersform':
+            break;
         case 'updatemembers':
             print_error('errorselectone', 'group', $returnurl);
     }
@@ -118,6 +120,10 @@ switch ($action) {
         redirect(new moodle_url('/group/members.php', array('group'=>$groupids[0])));
         break;
 
+    case 'showadvancedaddmembersform':
+        redirect(new moodle_url('/group/advanced_assign.php', array('courseid'=>$courseid)));
+        break;
+
     case 'updatemembers': //Currently reloading.
         break;
 
@@ -144,6 +150,7 @@ $disabled = 'disabled="disabled"';
 if (ajaxenabled()) {
     // Some buttons are enabled if single group selected
     $showaddmembersform_disabled = $singlegroup ? '' : $disabled;
+    $showadvancedaddmembersform_disabled = $singlegroup ? '' : $disabled;
     $showeditgroupsettingsform_disabled = $singlegroup ? '' : $disabled;
     $deletegroup_disabled = count($groupids)>0 ? '' : $disabled;
 } else {
@@ -151,6 +158,7 @@ if (ajaxenabled()) {
     // which you can change without reloading the page, so it is not appropriate
     // to disable them if no group is selected.
     $showaddmembersform_disabled = '';
+    $showadvancedaddmembersform_disabled = '';
     $showeditgroupsettingsform_disabled = '';
     $deletegroup_disabled = '';
 }
@@ -252,6 +260,10 @@ echo '</select>'."\n";
 
 echo '<p><input type="submit" ' . $showaddmembersform_disabled . ' name="act_showaddmembersform" '
         . 'id="showaddmembersform" value="' . get_string('adduserstogroup', 'group'). '" /></p>'."\n";
+
+echo '<p><input type="submit" ' . $showadvancedaddmembersform_disabled . ' name="act_showadvancedaddmembersform" '
+        . 'id="showadvancedaddmembersform" value="' . get_string('advancedadduserstogroups', 'group'). '" /></p>'."\n";
+
 echo '</td>'."\n";
 echo '</tr>'."\n";
 echo '</table>'."\n";
