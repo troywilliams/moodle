@@ -1,0 +1,529 @@
+/********************************************************
+**
+** Theme name: UOW (based on Leatherbound by Patrick Malley, tweaked by Teresa Gibbison, WCEL Team
+**
+** Customize, edit, poke, prod, and adapt to your needs.
+**
+*********************************************************/
+
+/* Global 
+------------------------*/
+
+body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    color: #281f18;
+}
+
+body,h1,h2,h3,h4,h5,h6,p,ul,ol,dl,input,textarea {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+h1 {
+    font-size: 1.75em;
+}
+
+.wrapper {
+    margin: 0 25px;
+}
+
+a:link,a:visited {
+    color: #0000CC;
+}
+
+a:hover,a:active {
+    color:#CC0000;
+	text-decoration:underline;
+}
+
+a img {
+    border: none;
+}
+
+a:active {
+    outline: none;
+}
+
+.mform fieldset{
+border-color:#CC0000;
+}
+
+.mform .fitem {
+    overflow:auto;
+}
+/* Header 
+-----------------------*/
+#topbanner {height:28px; background-color:#E5E5E5;}
+#custommenuwrap {clear:both; position:absolute; left:0; border-width:0; font-weight:bold; width:auto;}
+#headermenu {position:absolute; right:0; font-size:0.8em; text-align:right; width:600px; background-color:#E5E5E5;}
+#topbanner .logininfo {position:absolute; top:8px; right:180px;}
+#topbanner .langmenu {position:absolute; top:0; right:0; padding-top:5px; padding-right:5px;}
+
+#custommenu .yui3-menu-horizontal .yui3-menu-content, #custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content, #custommenu .yui3-menu-horizontal .yui3-menu-content ul, #custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content ul,#custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content li li:hover > a, #custommenu .yui3-menu-horizontal .yui3-menu-label, .yui3-skin-sam .yui3-menu-horizontal .yui3-menuitem-content {border-width:0;}
+
+/*YUI Reset */
+/*full menu bar */
+.yui3-skin-sam .yui3-menu-horizontal .yui3-menu-content {background: none !important;}
+/*single items */
+.yui3-skin-sam .yui3-menu-horizontal .yui3-menu-label {background: none !important;}
+/*active items */
+.yui3-skin-sam .yui3-menu-horizontal .yui3-menu-label-active, .yui3-skin-sam .yui3-menu-horizontal .yui3-menuitem-active .yui3-menuitem-content, .yui3-skin-sam .yui3-menu-horizontal .yui3-menu-label-menuvisible {color:#00FF00;/*background: none !important;border-color:inherit;*/}
+.yui3-menuitem, .yui3-menuitem .yui3-menuitem-content {border: none !important;}
+#custommenu .yui3-menu-horizontal .yui3-menu-content ul ul,#custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content ul ul {background-color:#F9F9F9;    border:1px solid #CC0000; border-top-width:0;}
+#custommenu .yui3-menu-horizontal .yui3-menu-content .yui3-menu-label, .yui3-menuitem .yui3-menuitem-content, .yui3-menuitem {color:#333333 !important;}
+.yui3-skin-sam #custommenu .yui3-menu-content,.yui3-skin-sam #custommenu .yui3-menu .yui3-menu .yui3-menu-content {padding:0;}
+#custommenu .custom_menu_submenu .yui3-menu-content .yui3-menu-label, .custom_menu_submenu .yui3-menuitem .yui3-menuitem-content {color: #000 !important;}
+#custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content li li:hover,#custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content li li:hover a,.yui3-skin-sam #custommenu .yui3-menu .custom_menu_submenu .yui3-menuitem.yui3-menuitem-active .yui3-menuitem-content {background-color:#CC0000 !important; color:#FFF !important;}
+.yui3-skin-sam .yui3-menu-label-active,.yui3-skin-sam .yui3-menu-label-menuvisible,.yui3-skin-sam .yui3-menu .yui3-menu .yui3-menu-label-active,.yui3-skin-sam .yui3-menu .yui3-menu .yui3-menu-label-menuvisible, #custommenu .custom_menu_submenu .yui3-menu-content .yui3-menu-label-active,#custommenu .custom_menu_submenu .yui3-menu-content .yui3-menu-label-menuvisible {background-color:#CC0000 !important;color:#FFF !important;}
+#custommenu .yui3-menu-horizontal .yui3-menu-content li a {cursor:pointer;}
+
+#page {
+    width: 100%; overflow: hidden;
+}
+
+#page-header {
+    float: none; border-bottom: 5px solid #CC0000; padding:0;
+}
+
+#headercrest {
+   float:left; width:230px;
+}
+
+#pagecrest {
+   float:left;
+   width:60px;
+}
+
+#headerimage, #pageimage{
+  position:absolute; right:5px;  padding-top:5px;
+}
+
+#pageimage{
+  position:absolute; right:2px;  padding-top:2px;
+}
+
+#page-header h1 {
+    font-size: 1.5em;   margin-top: 30px; margin-left: 5px;
+}
+
+#page-header h1.inside, #page-header h2.inside {
+    font-size: 1.6em;
+    margin: 20px 0 10px;
+}
+
+.headermenu {
+    margin: 0;
+    font-size: 0.9em;
+}
+#page-header a{
+    color:#FFFFFF;
+    text-decoration:underline;
+}
+
+.path-grade-report-grader h1 {
+    clear:none;
+}
+/** Coursebox and category box stuff for front page */
+
+.unlist div.summary {
+    font-size: 0.9em;
+	color:#333333;
+	width:100%;
+	margin-top:5px;
+	margin-bottom: 10px;
+}
+
+.unlist .coursebox .info {
+	font-size: 1em; 
+	width:100%;
+	}
+
+.unlist ul.teachers {
+    display: block;
+    padding-left: 5px !important;
+}
+
+.unlist ul.teachers li, .unlist ul.teachers li a{
+    font-size: 0.9em;
+}
+
+
+/* Footer
+-----------------------*/
+#page-footer {
+    border-top: 5px solid #CC0000;
+}
+
+#page-footer .logininfo { 
+	padding-top: 5px;
+	padding-bottom:0;
+}
+
+#page-footer .homelink,
+#page-footer .sitelink {
+	padding: 0;
+}
+
+.topbutton {
+   text-align:right;
+   padding-right:3em;
+}
+
+/* Navbar
+-----------------------*/
+
+.navbar {
+    border-bottom: 1px solid #CC0000;
+    background: #FFFFFF;
+    margin: 0;
+    padding: 5px 0;
+}
+
+.navbar .navbutton {
+    margin-top: 0;
+}
+
+.breadcrumb .sep {
+    font-size: 0.8em;
+    color: #999;
+}
+
+/* Profile
+-----------------------*/
+.userprofile .descriptionbox {
+	margin-left: 0px;
+	border: 1px solid #ddd;
+	padding: 10px;
+}
+
+.userprofile .description {
+   margin-left:200px;
+}
+
+.userprofile .list .c0 {
+	padding-left: 0;
+	width:20%;
+	font-size:0.9em;
+	font-weight: bold;
+}
+.userprofile .list .c1 {
+	padding-left: 0;
+	width:80%;
+	font-size:0.9em;
+}
+
+/* Message History
+-----------------------*/
+.message .messagearea .messagehistory .right,
+.message .messagearea .messagehistory .left {width:75%}
+
+/* Content
+-----------------------*/
+
+#page-content-wrapper {
+    float: none;
+    margin-top: 5px;
+}
+
+.coursebox .name{
+    font-weight: normal;
+    font-size: 1.2em;
+}
+
+.coursebox .info{
+    width:50%;
+}
+
+.coursebox .summary{
+    width:50%;
+	font-size:0.9em;
+}
+
+.course-content .no-overflow {padding-bottom:1px; padding-top:5px;}
+.course-content p, .course-content ul{margin-bottom:0.5em;}
+ul, ol {margin-bottom:1em;}
+
+#page-course-search .menumoveto, #page-admin-course-index .menumoveto {width: 100%;}
+
+.course-content th, .course-content td {
+    border-width:thin;
+}
+
+.path-mod-resource .resourcecontent {
+    font-size: 1.2em;
+}
+
+/* Blocks
+-----------------------*/
+
+.block {
+    margin-bottom: 20px;
+    border: none;
+}
+
+.block .header {
+    border-top: 3px solid #CC0000;
+    border-bottom: 1px solid #CC0000;
+    background: #FFF;
+    padding: 4px 5px 5px;
+}
+
+.block .title h2 {
+    color: #35251B;
+    font-weight: bold;
+    font-size: 1.2em;
+    margin: 0;
+}
+
+.block_myprofile .myprofileitem.fullname {
+  font-size:1.1em;
+  font-weight:bold;
+}
+
+.block_myprofile .myprofileitem.country, .block_myprofile .myprofileitem.city  {
+  font-size:0.85em;
+}
+
+.block_navigation .block_tree li {overflow:visible;}
+
+/* Forum
+------------------------*/
+
+.forumpost .topic {
+  background-clip:initial;
+  background-color:#FFFFFF;
+  background-image:initial;
+  background-origin:initial;
+  background-position:initial initial;
+  background-repeat:initial initial;
+  border-bottom-left-radius:6px 6px;
+  border-bottom-right-radius:6px 6px;
+  border-top-color:#CC0000;
+  border-top-left-radius:6px 6px;
+  border-top-right-radius:6px 6px;
+  border-top-style:solid;
+  border-top-width:2px;
+  color:#333333;
+  padding-bottom:0;
+  padding-left:10px;
+  padding-right:10px;
+  padding-top:0;
+}
+
+.forumpost .topic .subject {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.forumpost .topic .author {
+    font-size: 0.9em;
+	font-style:italic;
+}
+
+.course-content .unread, .forumheaderlist .unread {background: #FFD991;}
+.forumpost.unread .content  {border: 2px solid #FFD991;}
+.forumheaderlist .unread
+
+
+/*Dialgoue Activity
+-------------------- */
+
+.dialogue-entry .conversant {
+    font-size: 0.9em;
+    font-style:italic;
+}
+
+.dialogue-entry .modified {
+    font-size: 0.9em;
+    font-style:italic;
+    font-weight:normal;
+    color:#333333;
+}
+
+#page-mod-dialogue-view .unread {
+	background-color:#FFD991;
+}
+
+/*Quiz
+---------------------------*/
+#page-mod-quiz-edit .questionbankwindow div.header {
+   background-color:#CCCCCC;
+}
+#page-mod-quiz-edit .questionbankwindow div.header a{
+   color:#0000FF;
+   text-decoration:underline;
+}
+
+/* Course
+---------------------------*/
+
+h2.headingblock {
+    border-width: 0 0 1px 0;
+    padding: 5px 5px 2px;
+    font-weight: normal;
+    font-size: 1.3em;
+    background: #FFFFFF;
+    color:#CC0000;
+	text-transform:uppercase;
+}
+
+.course-content .sectionname{
+    color:#333333;
+	font-size: 1.3em;
+	font-weight:bold;
+}
+
+.course-content .main .content {
+    background:#FFFFFF;
+}
+.course-content .main {
+    background: #FFFFFF;
+    border-bottom: 1px solid #CC0000;
+}
+
+.course-content .current {
+    background: #FFD991;
+}
+
+.course-content .hidden {
+    border-top: 1px dashed #e5e5e5;
+    border-bottom: 1px dashed #e5e5e5;
+    background: #e5e5e5;
+}
+
+/* Gradebook
+---------------------------*/
+.path-grade-report-grader span.gradefail {
+    color:#000000;
+    font-weight: bold;
+    background-color:#f5bfbf;
+}
+
+/* Dock
+---------------------------*/
+
+#dock {
+    background-color: #f7f5f1;
+    border-right-color: #433b30;
+}
+
+#dock .dockeditem_container {
+    margin-top: 10px;
+}
+
+#dock .dockeditem {
+    background-color: #fff;
+}
+
+#dock .firstdockitem {
+    margin-top: 1em;
+}
+
+#dock .dockeditem .dockedtitle {
+    border-color: #dddddd;
+    border-top-color: #fff;
+}
+
+#dock .dockeditem .dockedtitle.activeitem {
+    background: #f7f5f1;
+    border-top-color:#f7f5f1 ;
+}
+
+#dock .firstdockitem .dockedtitle {
+    border-top-color: #ddd;
+}
+
+#dock .dockeditem .dockedtitle h2 {
+    margin: 12px 0 12px 7px;
+}
+
+#dockeditempanel .dockeditempanel_content {
+    border-color: #433b30;
+}
+
+#dockeditempanel .dockeditempanel_hd {
+    border-top: 3px solid #CC0000;
+    border-bottom: 1px solid #CC0000;
+    padding: 3px 5px;
+    background: #f7f6f1;
+    text-align: left;
+}
+
+#dockeditempanel .dockeditempanel_hd h2 {
+    color: #333;
+    text-align: left;
+    font-weight: normal;
+    font-size: 1.25em;
+    padding: 0 2px;
+}
+
+#dockeditempanel .dockeditempanel_hd .commands {
+    float: right;
+}
+
+.block_js_expansion .block_tree {
+    overflow-x: scroll;
+}
+
+.block_js_expansion.mouseover .content {
+    width: 200%;
+    z-index: 1000;
+    position: relative;
+}
+
+.block_js_expansion.mouseover .content .block_tree {
+    width: 100%;
+    background-color: #FAFAFA;
+    padding-bottom: 0px;
+}
+
+/** IE stylings */
+
+.ie6 .block .block_tree {
+    width: 160px;
+    overflow-x: scroll;
+}
+
+.ie6 .block_tree .tree_item {
+    width: 100%;
+}
+
+.ie6 #dock {
+    position: absolute;
+}
+
+.ie6 #dock hr {
+    display: none;
+    margin: 0px;
+    height: 0px;
+    padding: 0px;
+}
+
+.ie6 #dock li p {
+    background-color: inherit;
+}
+
+.ie6 #dock .bd.oversized_content .content, .ie7 #dock .bd.oversized_content .content {
+    padding-bottom: 0px;
+}
+
+.ie6 .block_js_expansion.mouseover .content, .ie7 .block_js_expansion.mouseover .content {
+    padding-bottom: 2px;
+}
+
+.ie6 #dock .bd.oversized_content {
+    width: 100%;
+}
+
+#page-mod-forum-view blockquote, #page-mod-forum-user blockquote {
+border-left: 3px solid #CC0000;
+margin-top: 0px;
+margin-right: 10px;
+margin-bottom: 10px;
+margin-left: 10px;
+padding-left: 5px;
+padding-top: 0px;
+color: #666666;
+font-size: 0.7em;
+}
