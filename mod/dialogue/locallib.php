@@ -202,6 +202,12 @@ function dialogue_get_available_students($dialogue, $context, $editconversationi
     // get the students on this course (default sort order)...
     if ($users = get_users_by_capability($context, 'mod/dialogue:participate', 
                                          null, null, null, null, null, null, null,null,false)) {
+        // enforce 'moodle/course:view' capability
+	foreach ($users as $id=>$user) {
+            if (has_capability('moodle/course:view', $context, $user)) {
+                unset($users[$id]);
+            }
+        }
 
         if (! empty($CFG->enablegroupings) && ! empty($cm->groupingid) && ! empty($users)) {
             $groupingusers = groups_get_grouping_members($cm->groupingid, 'u.id', 'u.id');
@@ -298,19 +304,13 @@ function dialogue_get_available_teachers($dialogue, $context, $editconversationi
     $hiddenTeachers = array();
     if ($users = get_users_by_capability($context, 'mod/dialogue:manage', '', 
                                          null, null, null, null, null, null,true,null)) {
-        /*foreach ($users as $user) {
-            $userRoles = get_user_roles($context, $user->id, true);
-            foreach ($userRoles as $role) {
-                if ($role->hidden == 1) {
-                    $hiddenTeachers[$user->id] = 1;
-                    break;
-                }
+        // enforce 'moodle/course:view' capability
+	foreach ($users as $id=>$user) {
+            if (has_capability('moodle/course:view', $context, $user)) {
+                unset($users[$id]);
             }
         }
-        $canSeeHidden = false;
-        if (has_capability('moodle/role:viewhiddenassigns', $context)) {
-            $canSeeHidden = true;
-        }*/
+
         $groupid = get_current_group($course->id);
         foreach ($users as $otheruser) {
             // ...exclude self and ...
