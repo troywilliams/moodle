@@ -10,6 +10,7 @@ $string['addsubject_help'] = '<p>You can use this link to add a Subject to the d
     If you want to start talking about another subject it is 
     better to close the current dialogue and start a new dialogue
     on that topic.</p>';
+$string['dialogue:addinstance'] = 'Add a new dialogue';
 $string['allowmultiple'] = 'Allow more than one Dialogue with the same person';
 $string['allowmultiple_help'] = '<p>This option allows a person to start more than one dialogue with 
     someone else. The default is No, which only allows one (open) 
