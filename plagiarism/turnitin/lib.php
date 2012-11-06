@@ -1055,8 +1055,13 @@ function turnitin_send_file($pid, $plagiarismsettings, $file) {
     $tii['pfn']     = $tii['ufn'];
     $tii['pln']     = $tii['uln'];
     //$tii['diagnostic'] = '1';
-    $tiixml = turnitin_post_data($tii, $plagiarismsettings, $file, $pid);
-
+    try {
+	$tiixml = turnitin_post_data($tii, $plagiarismsettings, $file, $pid);
+    } catch (Exception $e) {
+        mtrace($e->getMessage()); // permission problem
+        turnitin_end_session($user, $plagiarismsettings, $tiisession);
+        return false;
+    }
     if (isset($tiixml->rcode[0])) {
         turnitin_update_file_status_code($pid, $tiixml->rcode[0]);
     }
