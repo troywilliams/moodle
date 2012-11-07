@@ -539,6 +539,10 @@ class plagiarism_plugin_turnitin extends plagiarism_plugin {
      */
     public function event_handler($eventdata) {
         global $DB, $CFG;
+	// Plagiarism plugins disabled?
+        if (empty($CFG->enableplagiarism)) {
+            return false; //don't delete the eventdata
+        }
         $plagiarismsettings = $this->get_settings();
         $cmid = (!empty($eventdata->cm->id)) ? $eventdata->cm->id : $eventdata->cmid;
         $plagiarismvalues = $DB->get_records_menu('plagiarism_turnitin_config', array('cm'=>$cmid), '', 'name,value');
