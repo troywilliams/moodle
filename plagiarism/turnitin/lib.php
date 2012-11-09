@@ -1362,7 +1362,13 @@ function turnitin_create_assignment($plagiarismsettings, $plagiarismvalues, $eve
                 $configval->name = 'turnitin_mainteacher';
                 $configval->value = (string) $user->id;
                 $DB->insert_record('plagiarism_turnitin_config', $configval);
-            }
+            } else {
+                $configval = new stdClass();
+                $configval->cm = $cm->id;
+                $configval->name = 'turnitin_mainteacher';
+                $configval->value = (string) $user->id;
+                $DB->update_record('plagiarism_turnitin_config', $configval);
+	    }
             // save assignid
             if (!$DB->record_exists('plagiarism_turnitin_config', array('cm'=>$cm->id, 'name'=>'turnitin_assignid'))){
                 $configval = new stdClass();
