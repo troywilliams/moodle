@@ -78,14 +78,52 @@ class qtype_truefalse_renderer extends qtype_renderer {
         $falseclass = '';
         $truefeedbackimg = '';
         $falsefeedbackimg = '';
-        if ($options->correctness) {
-            if ($truechecked) {
+        // Show if "show all answers" has been selected, and the user has submitted a response
+        $showallanswersnow = $options->allanswers && $response != null;
+        if ($showallanswersnow || $options->correctness) {
+            if ($truechecked || $showallanswersnow) {
                 $trueclass = ' ' . $this->feedback_class((int) $question->rightanswer);
                 $truefeedbackimg = $this->feedback_image((int) $question->rightanswer);
-            } else if ($falsechecked) {
+            }
+
+            if ((!$truechecked && $falsechecked) || $showallanswersnow) {
                 $falseclass = ' ' . $this->feedback_class((int) (!$question->rightanswer));
                 $falsefeedbackimg = $this->feedback_image((int) (!$question->rightanswer));
             }
+        }
+        if ($showallanswersnow) {
+            $truefeedback = ' ' . html_writer::tag(
+                    'div',
+                    $question->make_html_inline(
+                            $question->format_text(
+                                    $question->truefeedback,
+                                    $question->truefeedbackformat,
+                                    $qa,
+                                    'question',
+                                    'answerfeedback',
+                                    $question->trueanswerid
+                            )
+                    ),
+                    array('class' => 'specificfeedback')
+            );
+            $falsefeedback = ' ' . html_writer::tag(
+                    'div',
+                    $question->make_html_inline(
+                            $question->format_text(
+                                    $question->falsefeedback,
+                                    $question->falsefeedbackformat,
+                                    $qa,
+                                    'question',
+                                    'answerfeedback',
+                                    $question->falseanswerid
+                            )
+                    ),
+                    array('class' => 'specificfeedback')
+            );
+            $question->showallanswersnow = true;
+        } else {
+            $truefeedback = '';
+            $falsefeedback = '';
         }
 
         $radiotrue = html_writer::empty_tag('input', $trueattributes) .
@@ -104,9 +142,9 @@ class qtype_truefalse_renderer extends qtype_renderer {
                 array('class' => 'prompt'));
 
         $result .= html_writer::start_tag('div', array('class' => 'answer'));
-        $result .= html_writer::tag('div', $radiotrue . ' ' . $truefeedbackimg,
+        $result .= html_writer::tag('div', $radiotrue . ' ' . $truefeedbackimg . $truefeedback,
                 array('class' => 'r0' . $trueclass));
-        $result .= html_writer::tag('div', $radiofalse . ' ' . $falsefeedbackimg,
+        $result .= html_writer::tag('div', $radiofalse . ' ' . $falsefeedbackimg . $falsefeedback,
                 array('class' => 'r1' . $falseclass));
         $result .= html_writer::end_tag('div'); // answer
 
@@ -124,6 +162,9 @@ class qtype_truefalse_renderer extends qtype_renderer {
     public function specific_feedback(question_attempt $qa) {
         $question = $qa->get_question();
         $response = $qa->get_last_qt_var('answer', '');
+        if (isset($question->showallanswersnow)) {
+            return;
+        }
 
         if ($response) {
             return $question->format_text($question->truefeedback, $question->truefeedbackformat,

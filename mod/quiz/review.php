@@ -72,6 +72,7 @@ if ($attemptobj->is_own_attempt()) {
 // Load the questions and states needed by this page.
 if ($showall) {
     $questionids = $attemptobj->get_slots();
+    print_object($attemptobj->get_slots());
 } else {
     $questionids = $attemptobj->get_slots($page);
 }

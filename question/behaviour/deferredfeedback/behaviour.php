@@ -46,7 +46,7 @@ class qbehaviour_deferredfeedback extends question_behaviour_with_save {
 
     public static function get_unused_display_options() {
         return array('correctness', 'marks', 'specificfeedback', 'generalfeedback',
-                'rightanswer');
+                'rightanswer', 'allanswers');
     }
 
     public function get_min_fraction() {

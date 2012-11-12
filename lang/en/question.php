@@ -25,6 +25,7 @@
 
 $string['addcategory'] = 'Add category';
 $string['adminreport'] = 'Report on possible problems in your question database.';
+$string['allanswers'] = 'All answers';
 $string['availableq'] = 'Available?';
 $string['badbase'] = 'Bad base before **: {$a}**';
 $string['behaviour'] = 'Behaviour';

@@ -47,6 +47,7 @@ class mod_quiz_display_options_test extends UnitTestCase {
         $quiz->reviewgeneralfeedback  = 0x01000;
         $quiz->reviewrightanswer      = 0x00100;
         $quiz->reviewoverallfeedback  = 0x00010;
+        $quiz->reviewallanswers       = 0x00001;
 
         $options = mod_quiz_display_options::make_from_quiz($quiz,
                 mod_quiz_display_options::DURING);
@@ -69,6 +70,7 @@ class mod_quiz_display_options_test extends UnitTestCase {
                 mod_quiz_display_options::LATER_WHILE_OPEN);
 
         $this->assertEqual(mod_quiz_display_options::VISIBLE, $options->rightanswer);
+        $this->assertEqual(mod_quiz_display_options::VISIBLE, $options->allanswers);
         $this->assertEqual(mod_quiz_display_options::HIDDEN, $options->generalfeedback);
 
         $options = mod_quiz_display_options::make_from_quiz($quiz,
@@ -76,5 +78,6 @@ class mod_quiz_display_options_test extends UnitTestCase {
 
         $this->assertEqual(mod_quiz_display_options::VISIBLE, $options->overallfeedback);
         $this->assertEqual(mod_quiz_display_options::HIDDEN, $options->rightanswer);
+        $this->assertEqual(mod_quiz_display_options::VISIBLE, $options->allanswers);
     }
 }

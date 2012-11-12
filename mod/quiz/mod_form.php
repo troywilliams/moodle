@@ -48,6 +48,7 @@ class mod_quiz_mod_form extends moodleform_mod {
             'specificfeedback' => get_string('specificfeedback', 'question'),
             'generalfeedback' => get_string('generalfeedback', 'question'),
             'rightanswer' => get_string('rightanswer', 'question'),
+            'allanswers' => get_string('allanswers', 'question'),
             'overallfeedback' => get_string('overallfeedback', 'quiz'),
         );
         parent::__construct($current, $section, $cm, $course);
@@ -376,6 +377,7 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->disabledIf('specificfeedback' . $whenname, 'attempt' . $whenname);
         $mform->disabledIf('generalfeedback' . $whenname, 'attempt' . $whenname);
         $mform->disabledIf('rightanswer' . $whenname, 'attempt' . $whenname);
+        $mform->disabledIf('allanswers' . $whenname, 'attempt' . $whenname);
     }
 
     protected function preprocessing_review_settings(&$toform, $whenname, $when) {

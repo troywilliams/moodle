@@ -55,6 +55,7 @@ $string['affectedstudents'] = 'Affected {$a}';
 $string['aftereachquestion'] = 'After adding each question';
 $string['afternquestions'] = 'After adding {$a} questions';
 $string['age'] = 'age';
+$string['allanswers'] = 'All answers';
 $string['allattempts'] = 'All attempts';
 $string['allinone'] = 'Unlimited';
 $string['allowreview'] = 'Allow review';

@@ -198,6 +198,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
      * @param bool $showall if true display attempt on one page
      */
     public function review_form($page, $showall, $displayoptions, $content, $attemptobj) {
+        
         if ($displayoptions->flags != question_display_options::EDITABLE) {
             return $content;
         }

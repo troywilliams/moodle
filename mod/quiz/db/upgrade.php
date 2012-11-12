@@ -818,6 +818,7 @@ function xmldb_quiz_upgrade($oldversion) {
     define('QUIZ_OLD_SOLUTIONS',       16*0x1041); // Show solutions
     define('QUIZ_OLD_GENERALFEEDBACK', 32*0x1041); // Show question general feedback
     define('QUIZ_OLD_OVERALLFEEDBACK',  1*0x4440000); // Show quiz overall feedback
+    define('QUIZ_OLD_ALLFEEDBACK',     4*0x4440000); // Show feedback for all answers
 
     // Copy the old review settings
     if ($oldversion < 2011051214) {
@@ -1226,6 +1227,31 @@ function xmldb_quiz_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2011112904, 'quiz');
     }
 
+    if ($oldversion < 2011112905) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new xmldb_table('quiz');
+        $field = new xmldb_field('reviewallanswers');
+        $field->set_attributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED,
+                               XMLDB_NOTNULL, null, '0', 'reviewoverallfeedback');
+
+        // Launch add field reviewattempt
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $quizrevew = get_config('quiz', 'review');
+        set_config('reviewallanswers',
+                  ($quizrevew & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ALLFEEDBACK ? QUIZ_NEW_DURING : 0) |
+                  ($quizrevew & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ALLFEEDBACK ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                  ($quizrevew & QUIZ_OLD_OPEN & QUIZ_OLD_ALLFEEDBACK ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                  ($quizrevew & QUIZ_OLD_CLOSED & QUIZ_OLD_ALLFEEDBACK ? QUIZ_NEW_AFTER_CLOSE : 0),
+                  'quiz');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint(true, 2011112905, 'quiz');
+    }
+    
     return true;
 }
 

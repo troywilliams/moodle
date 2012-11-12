@@ -2,3 +2,12 @@
 .que.truefalse .answer div.r1 {
     padding: 0.3em;
 }
+
+.que.truefalse .answer .specificfeedback {
+    padding: 0 0.7em;
+    background: #FFF3BF;
+}
+.que.truefalse .answer .specificfeedback * {
+    display: inline;
+    background: #FFF3BF;
+}

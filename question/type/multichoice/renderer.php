@@ -78,6 +78,8 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             $inputattributes['value'] = $this->get_input_value($value);
             $inputattributes['id'] = $this->get_input_id($qa, $value);
             $isselected = $question->is_choice_selected($response, $value);
+            // Show if "show all answers" has been selected, and the user has submitted at least one response.
+            $showallanswersnow = $options->allanswers && $response != -1;
             if ($isselected) {
                 $inputattributes['checked'] = 'checked';
             } else {
@@ -102,8 +104,8 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             // $options->suppresschoicefeedback is a hack specific to the
             // oumultiresponse question type. It would be good to refactor to
             // avoid refering to it here.
-            if ($options->feedback && empty($options->suppresschoicefeedback) &&
-                    $isselected && trim($ans->feedback)) {
+            if (($showallanswersnow || ($options->feedback && empty($options->suppresschoicefeedback) &&
+                    $isselected)) && trim($ans->feedback)) {
                 $feedback[] = html_writer::tag('div',
                         $question->make_html_inline($question->format_text(
                                 $ans->feedback, $ans->feedbackformat,
@@ -113,7 +115,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
                 $feedback[] = '';
             }
             $class = 'r' . ($value % 2);
-            if ($options->correctness && $isselected) {
+            if ($showallanswersnow || ($options->correctness && $isselected)) {
                 $feedbackimg[] = $this->feedback_image($this->is_right($ans));
                 $class .= ' ' . $this->feedback_class($this->is_right($ans));
             } else {
