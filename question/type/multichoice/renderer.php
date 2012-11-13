@@ -58,6 +58,8 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
         $question = $qa->get_question();
         $response = $question->get_response($qa);
 
+        $showallanswersnow = $options->allanswers && $question->is_gradable_response($qa->get_last_qt_data());
+
         $inputname = $qa->get_qt_field_name('answer');
         $inputattributes = array(
             'type' => $this->get_input_type(),
@@ -79,7 +81,6 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             $inputattributes['id'] = $this->get_input_id($qa, $value);
             $isselected = $question->is_choice_selected($response, $value);
             // Show if "show all answers" has been selected, and the user has submitted at least one response.
-            $showallanswersnow = $options->allanswers && $response != -1;
             if ($isselected) {
                 $inputattributes['checked'] = 'checked';
             } else {
