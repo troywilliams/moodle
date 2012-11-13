@@ -151,14 +151,14 @@ function user_load_users_from_file($filename, $createpassword=false, $updateacco
                     if ($key == 'password' && !empty($value)) {
                         $user->$key = hash_internal_user_password($value);
                     } else if($key == 'username') {
-                        $value = $textlib->strtolower(addslashes($value));
+                        $value = $textlib->strtolower($value);
                         if(empty($CFG->extendedusernamechars)) {
                             $value = eregi_replace('[^(-\.[:alnum:])]', '', $value);
                         }
                         @$newusernames[$value]++;
                         $user->$key = $value;
                     } else {
-                        $user->$key = addslashes($value);
+                        $user->$key = $value;
                     }
                 }
             }
@@ -232,7 +232,7 @@ function user_load_users_from_file($filename, $createpassword=false, $updateacco
                     // check for new username duplicates
                     if($newusernames[$value] > 1) {
                         if($skipduplicates) {
-                            $errors .= get_string('duplicateusername', 'error') . ' (' . stripslashes($value) . '). ';
+                            $errors .= get_string('duplicateusername', 'error') . ' (' . $value . '). ';
                             continue;
                         } else {
                             $value .= $newusernames[$value];
@@ -281,7 +281,7 @@ function user_load_users_from_file($filename, $createpassword=false, $updateacco
             // before insert/update, check whether we should be updating an old record instead
             if ($allowrenames && !empty($user->oldusername) ) {
                 $user->oldusername = $textlib->strtolower($user->oldusername);
-                $info = ': ' . stripslashes($user->oldusername) . '-->' . stripslashes($user->username) . '. ';
+                $info = ': ' . $user->oldusername . '-->' . $user->username . '. ';
                 if ($olduser = $DB->get_record('user', array('username'=>$user->oldusername, 'mnethostid'=>$user->mnethostid))) {
                     if ($DB->set_field('user', 'username', $user->username, array('id'=>$olduser->id))) {
                         $logger->fine(get_string('userrenamed', 'local_userimport') . $info);
@@ -302,7 +302,7 @@ function user_load_users_from_file($filename, $createpassword=false, $updateacco
             $olduser = $DB->get_record('user', array('username' => $user->username, 'mnethostid' => $user->mnethostid));
             if ($olduser) {
                 $user->id = $olduser->id;
-                $info = ': ' . stripslashes($user->username) .' (ID = ' . $user->id . ')';
+                $info = ': ' . $user->username .' (ID = ' . $user->id . ')';
                 if ($updateaccounts) {
                     // Record is being updated
                     if ($DB->update_record('user', $user)) {
@@ -322,7 +322,7 @@ function user_load_users_from_file($filename, $createpassword=false, $updateacco
                 }
             } else { // new user
                 if ($user->id = $DB->insert_record('user', $user)) {  
-                    $info = ': ' . stripslashes($user->username) .' (ID = ' . $user->id . ')';
+                    $info = ': ' . $user->username .' (ID = ' . $user->id . ')';
                     $logger->fine(get_string('newuser') . $info);
                     $usersnew++;
                     if (empty($user->password) && $createpassword) {
@@ -332,7 +332,7 @@ function user_load_users_from_file($filename, $createpassword=false, $updateacco
                     }
                 } else {
                     // Record not added -- possibly some other error
-                    $logger->warning(get_string('erroronline', 'error', $linenum). ': ' . get_string('usernotaddederror', 'error') . ': ' . stripslashes($user->username));
+                    $logger->warning(get_string('erroronline', 'error', $linenum). ': ' . get_string('usernotaddederror', 'error') . ': ' . $user->username);
                     $userserrors++;
                     continue;
                 }
@@ -415,7 +415,7 @@ function user_load_users_from_file($filename, $createpassword=false, $updateacco
  * @param string  $filename - The path (best if absolute) of the file rename and move
  * @param string  $prefix   - The prefix to attach to the file's name
  */
-
+/*
 function user_move_import_file($filename, $prefix) {
 
     $logger =& logger_get_logger('user_import', 'user_move_import_file');
@@ -441,6 +441,7 @@ function user_move_import_file($filename, $prefix) {
         $logger->info('Moved import file to '. $processdir . DIRECTORY_SEPARATOR . $prefix . $pathparts['basename']);
     }
 }
+*/
 
 /**
  * Searches for files to upload and calls
@@ -448,87 +449,52 @@ function user_move_import_file($filename, $prefix) {
  */
 function user_import_users() {
     global $CFG;
-
     //  Initialise the logger
     $logger =& logger_get_logger('user_import', 'user_import_users');
-
     //  Init vars
-    $processfiles   = 0;
     $status         = false;
     $prefix         = '';
-    $importdir      = get_config(null, 'userimport_repodir');
+    $filelocation   = get_config(null, 'userimport_filelocation');
     $createpassword = null;
     $updateaccounts = null;
     $allowrenames   = null;
     $skipduplicates = null;
     $defaultvalues  = null;
+    // file?
+    if (!is_file($filelocation)) {
+        $logger->error("The could not open $filelocation");
+        return false;
+    } else {
+        $filename = $filelocation;
+        $defaultvalues  = array();
+        $createpassword = get_config(null, 'userimport_createpassword');
+        $updateaccounts = get_config(null, 'userimport_updateaccounts');
+        $allowrenames   = get_config(null, 'userimport_allowrenames');
+        $skipduplicates = get_config(null, 'userimport_duplicatehandling');
+        $logger->info("Loading config parameters: Create password? $createpassword Update existing accounts? $updateaccounts Allow renames? $allowrenames Handle duplicates $skipduplicates");
 
-    //  Make sure we have the right path to search
-    if (($importdir != null) && is_dir($importdir)) {
+        $defaultArr = array('username','auth','email','maildisplay','emailstop','mailformat','autosubscribe','trackforums','htmleditor','city','country','timezone','lang','url','institution','department','phone1','phone2','address');
 
-        $files     = scandir($importdir);
-        $importdir = rtrim($importdir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-
-
-        if (count($files)) {
-            foreach ($files as $filename) {
-
-                if (is_file($importdir . $filename)) {
-                    //  Make sure that it is a file and not a folder
-                    $processfiles++;
-
-                    if ($processfiles == 1) {
-                        //  If we do have files to load, get the configuration variables
-                        $defaultvalues  = array();
-                        $createpassword = get_config(null, 'userimport_createpassword');
-                        $updateaccounts = get_config(null, 'userimport_updateaccounts');
-                        $allowrenames   = get_config(null, 'userimport_allowrenames');
-                        $skipduplicates = get_config(null, 'userimport_duplicatehandling');
-                        $logger->info("Import config parameters:<br />Import directory: $importdir<br />Create password? $createpassword<br />Update existing accounts? $updateaccounts<br />Allow renames? $allowrenames<br />Handle duplicates $skipduplicates");
-
-                        $defaultArr = array('username','auth','email','maildisplay','emailstop','mailformat','autosubscribe','trackforums','htmleditor','city','country','timezone','lang','url','institution','department','phone1','phone2','address');
-
-                        foreach($defaultArr as $field) {
-                           $defaultvalues[$field] =  get_config(null, "userimport_$field");
-                        }
-
-
-                    }
-
-                    $logger->fine("Processing file $filename for user imports...");
-
-                    //  Upload the users in the file
-                    $status = user_load_users_from_file($importdir . $filename, $createpassword, $updateaccounts, $allowrenames, $skipduplicates, $defaultvalues);
-
-                    if ($status) {
-                        $prefix = '';
-                        $logger->fine("The file $filename finish to process ok");
-                    }
-                    else {
-                        //  If an error occurred add a err_ prefix to the file
-                        $prefix = 'err_';
-                        $logger->error("The file $filename could not be processed");
-                    }
-
-                    //  Move the file to the process folder
-                    user_move_import_file($importdir . $filename, $prefix);
-                }
-            }
-
-            if ($processfiles > 0) {
-                $logger->fine("$processfiles file(s) processed");
-            }
-            else {
-                $logger->fine('No files to be imported!');
-            }
+        foreach($defaultArr as $field) {
+            $defaultvalues[$field] =  get_config(null, "userimport_$field");
         }
+        $logger->fine("Processing file $filename for user imports...");
+        //  Upload the users in the file
+        $status = user_load_users_from_file($filename, $createpassword, $updateaccounts, $allowrenames, $skipduplicates, $defaultvalues);
     }
-    else {
-        $logger->error("The supplied import repository ($importdir) is not a valid path");
+    // check n report status
+    if ($status) {
+        $logger->fine("The file $filename finish to process ok");
+        unlink($filename);
+        $logger->info('Import file has been deleted');
+        return true;
+    } else {
+        $logger->error("The file $filename could not be processed");
+        $erroredfilename = $filename.strftime(".errored_%m%d%Y-%H%M%S");
+        rename($filename, $erroredfilename);
+        $logger->info('Renamed to'. $erroredfilename);
         return false;
     }
-
-    return true;
 }
 
 ?>

@@ -2,7 +2,7 @@
 if ($hassiteconfig) {
 //  Add the import user cron to the Users/Accounts submenu
     $temp = new admin_settingpage('userimport', 'UoW User Import');
-    $temp->add(new admin_setting_configtext('userimport_repodir', 'User Import Directory', 'Enter the local address of the import directory (i.e. all files in this folder will be process for import)', '', PARAM_PATH));
+    $temp->add(new admin_setting_configtext('userimport_filelocation', 'File location', '', '', PARAM_PATH));
     $temp->add(new admin_setting_configselect('userimport_createpassword', 'Password field handling', '', 0, array('Field required in file','Create password if needed')));
     $temp->add(new admin_setting_configselect('userimport_updateaccounts', 'Update existing accounts', '', 0, array('No','Yes')));
     $temp->add(new admin_setting_configselect('userimport_allowrenames', 'Allow renames', '', 0, array('No','Yes')));
