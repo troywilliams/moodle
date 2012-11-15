@@ -289,7 +289,7 @@ foreach ($checkcourses as $courseid) {
     $dialogues = $DB->get_records('dialogue', array('course'=>$courseid));
     foreach ($dialogues as $dialogue) {
         $count = $DB->count_records('dialogue_conversations', array('dialogueid'=>$dialogue->id));
-        if ($count > 2000 && !$dialogue->multipleconversations) {
+        if ($count > 1000 && !$dialogue->multipleconversations) {
             mtrace($count.' conversations found in dialogue#'.$dialogue->id.' '.$dialogue->name);
             $prompt = 'Delete? type y (means yes) or n (means no) q (means quit) ';
             $input = cli_input($prompt, '', array('n','y','q'));
@@ -322,16 +322,6 @@ foreach ($checkcourses as $courseid) {
                        AND id $excludesql";
             $DB->delete_records_select('dialogue_conversations', $select, $excludeparams);
             
-            // Delete read
-            $sql = "DELETE 
-                      FROM {dialogue_read} 
-                     WHERE id IN (SELECT DISTINCT(dr.id) 
-                                  FROM {dialogue_read} dr
-                                  LEFT JOIN {dialogue_conversations} dc
-                                  ON dr.conversationid = dc.id
-                                  WHERE dc.id IS NULL)";
-            mtrace('cleaning up read receipts');
-            $DB->execute($sql);
             mtrace('purged!');
         }
     }
