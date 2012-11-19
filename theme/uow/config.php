@@ -103,7 +103,7 @@ $THEME->layouts = array(
         'options' => array('nofooter'=>true, 'noblocks'=>true, 'nonavbar'=>true),
     ),
     'report' => array(
-        'file' => 'report.php',
+        'file' => 'general.php',
         'regions' => array('side-pre'),
         'defaultregion' => 'side-pre',
     ),
