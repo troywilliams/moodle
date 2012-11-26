@@ -246,10 +246,6 @@ ul, ol {margin-bottom:1em;}
 
 #page-course-search .menumoveto, #page-admin-course-index .menumoveto {width: 100%;}
 
-.course-content th, .course-content td {
-    border-width:thin;
-}
-
 .path-mod-resource .resourcecontent {
     font-size: 1.2em;
 }
