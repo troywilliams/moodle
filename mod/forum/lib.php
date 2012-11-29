@@ -8303,7 +8303,7 @@ function forum_get_posts_by_user($user, array $courses, $musthaveaccess = false,
            WHERE ($wheresql)
              AND p.userid = :userid
              AND f.anonymous != 1
-             AND (f.anonymous = 2 AND p.anonymous != 1)";
+             AND (p.anonymous != 1)";
     $orderby = "ORDER BY p.modified DESC";
     $forumsearchparams['userid'] = $user->id;
 
