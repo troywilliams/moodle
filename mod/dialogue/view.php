@@ -124,7 +124,6 @@
     print_tabs($tabs, $pane, NULL, NULL, false);
     echo "<br />\n";
 
-    $names = dialogue_get_available_users($dialogue, $context, 0);
 
     switch ($pane) {
         case 0: // Open dialogue
@@ -147,6 +146,7 @@
                         break;
                 }
             }
+            $names = dialogue_get_available_users($dialogue, $context, 0);
             if ($names) {
                 // setup form for opening a new conversation
                 $mform = new mod_dialogue_open_form('dialogues.php', array('context'=>$context,
