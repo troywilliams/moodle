@@ -52,6 +52,9 @@ border-color:#CC0000;
 .mform .fitem {
     overflow:auto;
 }
+.pagelayout-report .no-overflow {
+  overflow:auto;
+}
 /* Header 
 -----------------------*/
 #topbanner {height:28px; background-color:#E5E5E5;}
