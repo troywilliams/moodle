@@ -35,6 +35,7 @@ class ou_memcache_session extends session_stub {
     protected function init_session_storage() {
         global $CFG;
         ini_set('session.save_handler', 'memcache');
+        ini_set('session.gc_maxlifetime', $CFG->sessiontimeout);
         ini_set('memcache.hash_strategy', 'consistent');
         /* Recommend below is set and adjusted in php.ini
         ini_set('session.save_path', 'tcp://<server>:11211');
