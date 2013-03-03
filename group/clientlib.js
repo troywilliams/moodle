@@ -161,6 +161,7 @@ UpdatableMembersCombo.prototype.refreshMembers = function () {
     }
 
     document.getElementById("showaddmembersform").disabled = !singleSelection;
+    document.getElementById("showadvancedaddmembersform").disabled = !singleSelection;
     document.getElementById("showeditgroupsettingsform").disabled = !singleSelection;
     document.getElementById("deletegroup").disabled = selectionCount == 0;
 
