@@ -460,7 +460,9 @@ function sis_build_grade_result($gradeitemid, $finalgrade) {
     $grade->mark = grade_format_gradevalue_letter($finalgrade, $gradeitem);
     $grade->percentage = grade_format_gradevalue_percentage($finalgrade, $gradeitem, 0, true);
     if ($gradeitem->get_coefstring() == 'aggregationcoefweight' and !$gradeitem->is_course_item()) {
-        $grade->contribution = ($gradeitem->aggregationcoef / $gradeitem->grademax) * $finalgrade;
+        if (!empty($gradeitem->aggregationcoef) and !empty($gradeitem->grademax)) {
+            $grade->contribution = ($gradeitem->aggregationcoef / $gradeitem->grademax) * $finalgrade;
+        }
     }
     return $grade;
 }
