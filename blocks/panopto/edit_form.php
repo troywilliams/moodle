@@ -28,7 +28,7 @@ class block_panopto_edit_form extends block_edit_form {
                          continue; // skip courses with viewer access
                      }
                      $displayname = s($panoptofolder->DisplayName);
-                     $selectlist[$panoptofolder->Access][$panoptofolder->PublicID] = $displayname;
+                     $selectlist[$panoptofolder->Access][$panoptofolder->PublicID] = shorten_text($displayname, 80);
                  }
              }
              // Fields for editing block contents.
