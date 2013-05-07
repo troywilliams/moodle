@@ -40,6 +40,10 @@ require_once($CFG->dirroot . '/tag/lib.php');
 require_once($CFG->dirroot . '/user/profile/lib.php');
 require_once($CFG->libdir.'/filelib.php');
 
+// UOW Hack for stupid category enrolments
+@set_time_limit(0);
+raise_memory_limit(MEMORY_EXTRA);
+
 $userid = optional_param('id', 0, PARAM_INT);
 $edit   = optional_param('edit', null, PARAM_BOOL);    // Turn editing on and off
 
@@ -321,6 +325,7 @@ if (!isset($hiddenfields['mycourses'])) {
         $courselisting = '';
         foreach ($mycourses as $mycourse) {
             if ($mycourse->category) {
+
                 $class = '';
                 if ($mycourse->visible == 0) {
                     $ccontext = get_context_instance(CONTEXT_COURSE, $mycourse->id);
