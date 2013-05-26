@@ -1264,10 +1264,10 @@ class assignment_upload extends assignment_base {
             $bodytext = html_to_text($bodyhtml); // should use a method $this->get_coversheet_text($submission). stop gap!
             $bodyrtf = $this->get_coversheet_rtf($submission);
             $tempbasename = 'assfile-' . sha1($bodyrtf);
-            $tempfile = '/temp/' . $tempbasename;
-            file_put_contents($CFG->dataroot . $tempfile, $bodyrtf);
+            $tempfile = $CFG->tempdir . '/' . $tempbasename;
+            file_put_contents($tempfile, $bodyrtf);
             email_to_user($user, $from, get_string('receiptsubject', 'assignment'), $bodytext, $bodyhtml, $tempfile, 'assignment-receipt.rtf');
-            @unlink($CFG->dataroot . $tempfile);
+            @unlink($tempfile);
         }
     }
 }
