@@ -65,16 +65,12 @@ class repository_webdav extends repository {
         return true;
     }
     public function get_file($url, $title) {
-        global $CFG;
         $url = urldecode($url);
         $path = $this->prepare_file($title);
-        $buffer = '';
         if (!$this->dav->open()) {
             return false;
         }
-        $this->dav->get($url, $buffer);
-        $fp = fopen($path, 'wb');
-        fwrite($fp, $buffer);
+        $this->dav->get_file($url, $path);
         return array('path'=>$path);
     }
     public function global_search() {
@@ -138,6 +134,9 @@ class repository_webdav extends repository {
                 $filedate = '';
             }
 
+            // Remove the server URL from the path (if present), otherwise links will not work - MDL-37014
+            $server = preg_quote($this->options['webdav_server']);
+            $v['href'] = preg_replace("#https?://{$server}#", '', $v['href']);
             if (!empty($v['resourcetype']) && $v['resourcetype'] == 'collection') {
                 // a folder
                 if (ltrim($path, '/') != urldecode(ltrim($v['href'], '/'))) {
@@ -157,10 +156,14 @@ class repository_webdav extends repository {
                         'path'=>$v['href']
                     );
                 }
-            }else{
-                // a file
+            } else {
+                // A file.
                 $path = rtrim($path,'/');
-                $title = urldecode(substr($v['href'], strpos($v['href'], $path)+strlen($path)));
+                if (empty($path)) {
+                    $title = urldecode($v['href']);
+                } else {
+                    $title = urldecode(substr($v['href'], strpos($v['href'], $path) + strlen($path)));
+                }
                 $title = basename($title);
                 $size = !empty($v['getcontentlength'])? $v['getcontentlength']:'';
                 $files[strtoupper($title)] = array(
@@ -199,10 +202,10 @@ class repository_webdav extends repository {
         $mform->addElement('select', 'webdav_auth', get_string('authentication', 'admin'), $choices);
         $mform->addRule('webdav_auth', get_string('required'), 'required', null, 'client');
 
-
         $mform->addElement('text', 'webdav_port', get_string('webdav_port', 'repository_webdav'), array('size' => '40'));
         $mform->addElement('text', 'webdav_user', get_string('webdav_user', 'repository_webdav'), array('size' => '40'));
-        $mform->addElement('text', 'webdav_password', get_string('webdav_password', 'repository_webdav'), array('size' => '40'));
+        $mform->addElement('password', 'webdav_password', get_string('webdav_password', 'repository_webdav'),
+            array('size' => '40'));
     }
     public function supported_returntypes() {
         return (FILE_INTERNAL | FILE_EXTERNAL);

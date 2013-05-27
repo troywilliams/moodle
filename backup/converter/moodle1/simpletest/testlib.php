@@ -253,13 +253,15 @@ class moodle1_converter_test extends UnitTestCase {
         $fileids = $fileman->get_fileids();
         $this->assertIsA($fileids, 'array');
         $this->assertEqual(0, count($fileids));
-        // try to migrate a non-existing directory
-        $returned = $fileman->migrate_directory('not/existing/directory');
-        $this->assertIsA($returned, 'array');
-        $this->assertEqual(0, count($returned));
-        $fileids = $fileman->get_fileids();
-        $this->assertIsA($fileids, 'array');
-        $this->assertEqual(0, count($fileids));
+        // try to migrate an invalid file
+        $fileman->itemid = 1;
+        $thrown = false;
+        try {
+            $fileman->migrate_file('/../../../../../../../../../../../../../../etc/passwd');
+        } catch (moodle1_convert_exception $e) {
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
         // migrate a single file
         $fileman->itemid = 4;
         $fileman->migrate_file('moddata/unittest/4/icon.gif');
@@ -288,6 +290,63 @@ class moodle1_converter_test extends UnitTestCase {
         $this->assertTrue(count($fileman->get_fileids()) > 0);
         $fileman->reset_fileids();
         $this->assertTrue(count($fileman->get_fileids()) == 0);
+        $converter->drop_stash_storage();
+    }
+
+    public function test_migrate_directory() {
+        // Set-up the file manager.
+        $converter = convert_factory::get_converter('moodle1', $this->tempdir);
+        $converter->create_stash_storage();
+        $contextid = $converter->get_contextid(CONTEXT_MODULE, 32);
+        $fileman   = $converter->get_file_manager($contextid, 'mod_unittest', 'testarea');
+        // This fileman has not converted anything yet.
+        $fileids = $fileman->get_fileids();
+        $this->assertIsA($fileids, 'array');
+        $this->assertEqual(0, count($fileids));
+        // Try to migrate a non-existing directory.
+        $returned = $fileman->migrate_directory('not/existing/directory');
+        $this->assertIsA($returned, 'array');
+        $this->assertEqual(0, count($returned));
+        $fileids = $fileman->get_fileids();
+        $this->assertIsA($fileids, 'array');
+        $this->assertEqual(0, count($fileids));
+        // Try to migrate whole course_files.
+        $returned = $fileman->migrate_directory('course_files');
+        $this->assertIsA($returned, 'array');
+        $this->assertEqual(4, count($returned)); // Two files, two directories.
+        $fileids = $fileman->get_fileids();
+        $this->assertIsA($fileids, 'array');
+        $this->assertEqual(4, count($fileids));
+        $this->assertTrue(is_file($converter->get_workdir_path().'/files/4e/4ea114b0558f53e3af8dd9afc0e0810a95c2a724'));
+        // Check the file records.
+        $files = array();
+        $filerecordids = $converter->get_stash_itemids('files');
+        foreach ($filerecordids as $filerecordid) {
+            $filerecord = $converter->get_stash('files', $filerecordid);
+            $files[$filerecord['filepath'].$filerecord['filename']] = $filerecord;
+        }
+        $this->assertIsA($files['/.'], 'array');
+        $this->assertIsA($files['/file1.gif'], 'array');
+        $this->assertIsA($files['/sub1/.'], 'array');
+        $this->assertIsA($files['/sub1/file2.gif'], 'array');
+        $this->assertEqual(sha1(''), $files['/.']['contenthash']);
+        $this->assertEqual(sha1(''), $files['/sub1/.']['contenthash']);
+        $this->assertEqual('4ea114b0558f53e3af8dd9afc0e0810a95c2a724', $files['/file1.gif']['contenthash']);
+        $this->assertEqual('4ea114b0558f53e3af8dd9afc0e0810a95c2a724', $files['/sub1/file2.gif']['contenthash']);
+        $converter->drop_stash_storage();
+    }
+
+    public function test_migrate_directory_with_trailing_slash() {
+        // Set-up the file manager.
+        $converter = convert_factory::get_converter('moodle1', $this->tempdir);
+        $converter->create_stash_storage();
+        $contextid = $converter->get_contextid(CONTEXT_MODULE, 32);
+        $fileman   = $converter->get_file_manager($contextid, 'mod_unittest', 'testarea');
+        // Try to migrate a subdirectory passed with the trailing slash.
+        // This may display a debugging message which is expected.
+        $returned = $fileman->migrate_directory('course_files/sub1/');
+        $this->assertIsA($returned, 'array');
+        $this->assertEqual(2, count($returned)); // One file, one directory.
         $converter->drop_stash_storage();
     }
 
@@ -421,6 +480,8 @@ class moodle1_converter_test extends UnitTestCase {
 
         $text = 'This is a text containing links to file.php
 as it is parsed from the backup file. <br /><br /><img border="0" width="110" vspace="0" hspace="0" height="92" title="News" alt="News" src="$@FILEPHP@$$@SLASH@$pics$@SLASH@$news.gif" /><a href="$@FILEPHP@$$@SLASH@$pics$@SLASH@$news.gif$@FORCEDOWNLOAD@$">download image</a><br />
+    <div><a href=\'$@FILEPHP@$/../../../../../../../../../../../../../../../etc/passwd\'>download passwords</a></div>
+    <div><a href=\'$@FILEPHP@$$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$etc$@SLASH@$shadow\'>download shadows</a></div>
     <br /><a href=\'$@FILEPHP@$$@SLASH@$MANUAL.DOC$@FORCEDOWNLOAD@$\'>download manual</a><br />';
 
         $files = moodle1_converter::find_referenced_files($text);
@@ -429,10 +490,39 @@ as it is parsed from the backup file. <br /><br /><img border="0" width="110" vs
         $this->assertTrue(in_array('/pics/news.gif', $files));
         $this->assertTrue(in_array('/MANUAL.DOC', $files));
 
-        $text = moodle1_converter::rewrite_filephp_usage($text, array('/pics/news.gif', '/another/file/notused.txt'), $files);
+        $text = moodle1_converter::rewrite_filephp_usage($text, array('/pics/news.gif', '/another/file/notused.txt'));
         $this->assertEqual($text, 'This is a text containing links to file.php
 as it is parsed from the backup file. <br /><br /><img border="0" width="110" vspace="0" hspace="0" height="92" title="News" alt="News" src="@@PLUGINFILE@@/pics/news.gif" /><a href="@@PLUGINFILE@@/pics/news.gif?forcedownload=1">download image</a><br />
+    <div><a href=\'$@FILEPHP@$/../../../../../../../../../../../../../../../etc/passwd\'>download passwords</a></div>
+    <div><a href=\'$@FILEPHP@$$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$..$@SLASH@$etc$@SLASH@$shadow\'>download shadows</a></div>
     <br /><a href=\'$@FILEPHP@$$@SLASH@$MANUAL.DOC$@FORCEDOWNLOAD@$\'>download manual</a><br />');
+    }
+
+    public function test_referenced_files_urlencoded() {
+
+        $text = 'This is a text containing links to file.php
+as it is parsed from the backup file. <br /><br /><img border="0" width="110" vspace="0" hspace="0" height="92" title="News" alt="News" src="$@FILEPHP@$$@SLASH@$pics$@SLASH@$news.gif" /><a href="$@FILEPHP@$$@SLASH@$pics$@SLASH@$news.gif$@FORCEDOWNLOAD@$">no space</a><br />
+    <br /><a href=\'$@FILEPHP@$$@SLASH@$pics$@SLASH@$news%20with%20spaces.gif$@FORCEDOWNLOAD@$\'>with urlencoded spaces</a><br />
+<a href="$@FILEPHP@$$@SLASH@$illegal%20pics%2Bmovies$@SLASH@$romeo%2Bjuliet.avi">Download the full AVI for free! (space and plus encoded)</a>
+<a href="$@FILEPHP@$$@SLASH@$illegal pics+movies$@SLASH@$romeo+juliet.avi">Download the full AVI for free! (none encoded)</a>
+<a href="$@FILEPHP@$$@SLASH@$illegal%20pics+movies$@SLASH@$romeo+juliet.avi">Download the full AVI for free! (only space encoded)</a>
+<a href="$@FILEPHP@$$@SLASH@$illegal pics%2Bmovies$@SLASH@$romeo%2Bjuliet.avi">Download the full AVI for free! (only plus)</a>';
+
+        $files = moodle1_converter::find_referenced_files($text);
+        $this->assertIsA($files, 'array');
+        $this->assertEqual(3, count($files));
+        $this->assertTrue(in_array('/pics/news.gif', $files));
+        $this->assertTrue(in_array('/pics/news with spaces.gif', $files));
+        $this->assertTrue(in_array('/illegal pics+movies/romeo+juliet.avi', $files));
+
+        $text = moodle1_converter::rewrite_filephp_usage($text, $files);
+        $this->assertEqual('This is a text containing links to file.php
+as it is parsed from the backup file. <br /><br /><img border="0" width="110" vspace="0" hspace="0" height="92" title="News" alt="News" src="@@PLUGINFILE@@/pics/news.gif" /><a href="@@PLUGINFILE@@/pics/news.gif?forcedownload=1">no space</a><br />
+    <br /><a href=\'@@PLUGINFILE@@/pics/news%20with%20spaces.gif?forcedownload=1\'>with urlencoded spaces</a><br />
+<a href="@@PLUGINFILE@@/illegal%20pics%2Bmovies/romeo%2Bjuliet.avi">Download the full AVI for free! (space and plus encoded)</a>
+<a href="@@PLUGINFILE@@/illegal%20pics%2Bmovies/romeo%2Bjuliet.avi">Download the full AVI for free! (none encoded)</a>
+<a href="$@FILEPHP@$$@SLASH@$illegal%20pics+movies$@SLASH@$romeo+juliet.avi">Download the full AVI for free! (only space encoded)</a>
+<a href="$@FILEPHP@$$@SLASH@$illegal pics%2Bmovies$@SLASH@$romeo%2Bjuliet.avi">Download the full AVI for free! (only plus)</a>', $text);
     }
 
     public function test_question_bank_conversion() {

@@ -90,5 +90,18 @@
 /** Unknown Styles ??? */
 #email .unsubscribelink {margin-top:20px;}
 
+/* Forumpost unread
+-------------------------*/
+
+#page-mod-forum-view .unread,
+.forumpost.unread .row.header,
+.path-course-view .unread,
+span.unread {
+    background-color: #FFD;
+}
+.forumpost.unread .row.header {
+    border-bottom: 1px solid #DDD;
+}
+
 /** UOW blockquote (WMS) **/
 #page-mod-forum-discuss blockquote, #page-mod-forum-post blockquote {border-left: 3px solid #CC0000;margin-top: 0px;margin-right: 10px;margin-bottom: 10px;margin-left: 10px;padding-left: 5px;padding-top: 0px;color: #666666;font-size: 0.7em;}

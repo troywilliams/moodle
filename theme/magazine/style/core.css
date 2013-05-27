@@ -804,6 +804,11 @@ table#categoryquestions th a {
     padding: 5px;
 }
 
+.generaltable .header,
+.generaltable .header a {
+    padding: 0;
+}
+
 tr.r1 td {
     background-color: #f9f9f9;
 }
@@ -1040,7 +1045,7 @@ table.glossarypost td.entry h3 {
 
 div#intro {
     border: none;
-    text-align: center;
+    text-align: left;
     font-size: 14px;
     color: #333333;
 }

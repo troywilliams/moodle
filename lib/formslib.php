@@ -70,7 +70,7 @@ if (!empty($CFG->debug) and $CFG->debug >= DEBUG_ALL){
  * @global moodle_page $PAGE
  */
 function form_init_date_js() {
-    global $PAGE;
+    global $CFG, $PAGE;
     static $done = false;
     if (!$done) {
         $module   = 'moodle-form-dateselector';
@@ -97,6 +97,21 @@ function form_init_date_js() {
             'november'          => strftime('%B', strtotime("November 1")),
             'december'          => strftime('%B', strtotime("December 1"))
         ));
+
+        // If we are running under Windows convert from windows encoding to UTF-8 (because it's impossible
+        // to specify UTF-8 to fetch locale info in Win32. Snippet copied from userdate().
+        if ($CFG->ostype == 'WINDOWS') {
+            if ($localewincharset = get_string('localewincharset', 'langconfig')) {
+                $textlib = textlib_get_instance();
+                foreach ($config[0] as $key => &$value) {
+                    if ($key == 'firstdayofweek') {
+                        continue;
+                    }
+                    $value = $textlib->convert($value, $localewincharset, 'utf-8');
+                }
+            }
+        }
+
         $PAGE->requires->yui_module($module, $function, $config);
         $done = true;
     }
@@ -1477,8 +1492,85 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
     }
 
     /**
-     * @param array $submission
-     * @param array $files
+     * Return the type(s) to use to clean an element.
+     *
+     * In the case where the element has an array as a value, we will try to obtain a
+     * type defined for that specific key, and recursively until done.
+     *
+     * This method does not work reverse, you cannot pass a nested element and hoping to
+     * fallback on the clean type of a parent. This method intends to be used with the
+     * main element, which will generate child types if needed, not the other way around.
+     *
+     * Example scenario:
+     *
+     * You have defined a new repeated element containing a text field called 'foo'.
+     * By default there will always be 2 occurence of 'foo' in the form. Even though
+     * you've set the type on 'foo' to be PARAM_INT, for some obscure reason, you want
+     * the first value of 'foo', to be PARAM_FLOAT, which you set using setType:
+     * $mform->setType('foo[0]', PARAM_FLOAT).
+     *
+     * Now if you call this method passing 'foo', along with the submitted values of 'foo':
+     * array(0 => '1.23', 1 => '10'), you will get an array telling you that the key 0 is a
+     * FLOAT and 1 is an INT. If you had passed 'foo[1]', along with its value '10', you would
+     * get the default clean type returned (param $default).
+     *
+     * @param string $elementname name of the element.
+     * @param mixed $value value that should be cleaned.
+     * @param int $default default constant value to be returned (PARAM_...)
+     * @return string|array constant value or array of constant values (PARAM_...)
+     */
+    public function getCleanType($elementname, $value, $default = PARAM_RAW) {
+        $type = $default;
+        if (array_key_exists($elementname, $this->_types)) {
+            $type = $this->_types[$elementname];
+        }
+        if (is_array($value)) {
+            $default = $type;
+            $type = array();
+            foreach ($value as $subkey => $subvalue) {
+                $typekey = "$elementname" . "[$subkey]";
+                if (array_key_exists($typekey, $this->_types)) {
+                    $subtype = $this->_types[$typekey];
+                } else {
+                    $subtype = $default;
+                }
+                if (is_array($subvalue)) {
+                    $type[$subkey] = $this->getCleanType($typekey, $subvalue, $subtype);
+                } else {
+                    $type[$subkey] = $subtype;
+                }
+            }
+        }
+        return $type;
+    }
+
+    /**
+     * Return the cleaned value using the passed type(s).
+     *
+     * @param mixed $value value that has to be cleaned.
+     * @param int|array $type constant value to use to clean (PARAM_...), typically returned by {@link self::getCleanType()}.
+     * @return mixed cleaned up value.
+     */
+    public function getCleanedValue($value, $type) {
+        if (is_array($type) && is_array($value)) {
+            foreach ($type as $key => $param) {
+                $value[$key] = $this->getCleanedValue($value[$key], $param);
+            }
+        } else if (!is_array($type) && !is_array($value)) {
+            $value = clean_param($value, $type);
+        } else if (!is_array($type) && is_array($value)) {
+            $value = clean_param_array($value, $type, true);
+        } else {
+            throw new coding_exception('Unexpected type or value received in MoodleQuickForm::getCleanedValue()');
+        }
+        return $value;
+    }
+
+    /**
+     * Updates submitted values
+     *
+     * @param array $submission submitted values
+     * @param array $files list of files
      */
     function updateSubmission($submission, $files) {
         $this->_flagSubmitted = false;
@@ -1486,17 +1578,9 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
         if (empty($submission)) {
             $this->_submitValues = array();
         } else {
-            foreach ($submission as $key=>$s) {
-                if (array_key_exists($key, $this->_types)) {
-                    $type = $this->_types[$key];
-                } else {
-                    $type = PARAM_RAW;
-                }
-                if (is_array($s)) {
-                    $submission[$key] = clean_param_array($s, $type, true);
-                } else {
-                    $submission[$key] = clean_param($s, $type);
-                }
+            foreach ($submission as $key => $s) {
+                $type = $this->getCleanType($key, $s);
+                $submission[$key] = $this->getCleanedValue($s, $type);
             }
             $this->_submitValues = $submission;
             $this->_flagSubmitted = true;
@@ -1655,7 +1739,7 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
                     $value = '';
                     // If we have a default value then export it.
                     if (isset($this->_defaultValues[$varname])) {
-                        $value = array($varname => $this->_defaultValues[$varname]);
+                        $value = $this->prepare_fixed_value($varname, $this->_defaultValues[$varname]);
                     }
                 } else {
                     $value = $this->_elements[$key]->exportValue($this->_submitValues, true);
@@ -1685,6 +1769,29 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
         }
         return $unfiltered;
     }
+    /**
+     * This is a bit of a hack, and it duplicates the code in
+     * HTML_QuickForm_element::_prepareValue, but I could not think of a way or
+     * reliably calling that code. (Think about date selectors, for example.)
+     * @param string $name the element name.
+     * @param mixed $value the fixed value to set.
+     * @return mixed the appropriate array to add to the $unfiltered array.
+     */
+    protected function prepare_fixed_value($name, $value) {
+        if (null === $value) {
+            return null;
+        } else {
+            if (!strpos($name, '[')) {
+                return array($name => $value);
+            } else {
+                $valueAry = array();
+                $myIndex  = "['" . str_replace(array(']', '['), array('', "']['"), $name) . "']";
+                eval("\$valueAry$myIndex = \$value;");
+                return $valueAry;
+            }
+        }
+    }
+
     /**
      * Adds a validation rule for the given field
      *

@@ -106,6 +106,14 @@ if (!empty($new)){
     $type = repository::get_type_by_id($instance->options['typeid']);
 }
 
+// The context passed MUST match the context of the repository. And as both have to be
+// similar, this also ensures that the context is either a user one, or a course one.
+if (!empty($instance)) {
+    if ($instance->instance->contextid != $context->id) {
+        print_error('invalidcontext');
+    }
+}
+
 if (isset($type)) {
     if (!$type->get_visible()) {
         print_error('typenotvisible', 'repository', $baseurl);
@@ -149,6 +157,8 @@ if (!empty($edit) || !empty($new)) {
         //if you try to edit an instance set as readonly, display an error message
         if ($instance->readonly) {
             throw new repository_exception('readonlyinstance', 'repository');
+        } else if (!repository::check_capability($contextid, $instance)) {
+            throw new repository_exception('nopermissiontoaccess', 'repository');
         }
         $instancetype = repository::get_type_by_id($instance->options['typeid']);
         $classname = 'repository_' . $instancetype->get_typename();
@@ -205,6 +215,8 @@ if (!empty($edit) || !empty($new)) {
      //if you try to delete an instance set as readonly, display an error message
     if ($instance->readonly) {
         throw new repository_exception('readonlyinstance', 'repository');
+    } else if (!repository::check_capability($contextid, $instance)) {
+        throw new repository_exception('nopermissiontoaccess', 'repository');
     }
     if ($sure) {
         if (!confirm_sesskey()) {

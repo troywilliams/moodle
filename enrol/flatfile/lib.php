@@ -169,11 +169,14 @@ class enrol_flatfile_plugin extends enrol_plugin {
                 $eventdata->smallmessage      = '';
                 message_send($eventdata);
                 $this->log .= "Error unlinking file $filename\n";
-            }
+            } 
         } else {
-            $this->log .= " $filename doesn't exist.\n";
+            $this->log = $filename ."doesn't exist.\n";
         } // end of if(file_exists)
+
+        // UOW - we want to know if file doesn't exist
         if (!empty($mailadmins)) {
+
             // Send mail to admin
             $eventdata = new stdClass();
             $eventdata->modulename        = 'moodle';
@@ -286,7 +289,7 @@ class enrol_flatfile_plugin extends enrol_plugin {
 
                 $eventdata = new stdClass();
                 $eventdata->modulename        = 'moodle';
-                $eventdata->component         = 'course';
+                $eventdata->component         = 'enrol_flatfile';
                 $eventdata->name              = 'flatfile_enrolment';
                 $eventdata->userfrom          = $teacher;
                 $eventdata->userto            = $user;
@@ -309,7 +312,7 @@ class enrol_flatfile_plugin extends enrol_plugin {
 
                     $eventdata = new stdClass();
                     $eventdata->modulename        = 'moodle';
-                    $eventdata->component         = 'course';
+                    $eventdata->component         = 'enrol_flatfile';
                     $eventdata->name              = 'flatfile_enrolment';
                     $eventdata->userfrom          = $user;
                     $eventdata->userto            = $teacher;
