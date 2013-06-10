@@ -164,4 +164,7 @@ if (has_capability('moodle/grade:viewall', $context)) { //Teachers will see all 
     }
 }
 
+//Add UOW notice about the provisional nature of the results
+echo '<p align="center" class="generalboxcontent">Results are not final until they have been confirmed at the<br>Boards of Examiners meetings which will be held after each examination period.<br>Final results will be available in iWaikato.</p>';
+
 echo $OUTPUT->footer();
