@@ -279,6 +279,12 @@ class block_panopto extends block_base
         global $DB;
 
         $coursefoldermap = $DB->get_record('block_panopto_foldermap', array('moodleid'=>$courseid), '*', MUST_EXIST);
+        $courseexists = $DB->record_exists('course', array('id'=>$courseid));
+        if (!$courseexists) {
+            mtrace('[courseid#'.$courseid.'] does not exist, deleting');
+            $DB->delete_records('block_panopto_foldermap', array('moodleid'=>$courseid));
+            return false;
+        }
         $coursecontext = context_course::instance($courseid);
         // check if block on exists
         $params = array('blockname'=>'panopto', 'parentcontextid'=>$coursecontext->id);
