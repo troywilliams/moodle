@@ -253,9 +253,16 @@ class enrol_flatfile_plugin extends enrol_plugin {
         } else {
             $instances = $DB->get_records('enrol',
                             array('enrol' => 'flatfile', 'courseid' => $course->id));
+            list($roles, $rolemap) = $this->get_roles();
             foreach ($instances as $instance) {
                 // Unenrol the user from all flatfile enrolment instances
-                $this->unenrol_user($instance, $user->id);
+                // UOW HACK ALERT
+                if ($roles['co_teacher'] == $roleid) {
+                    role_unassign($roleid, $user->id, $context->id, 'enrol_flatfile', $instance->id);
+                    mtrace("userid $user->id co_teacher role unassigned");
+                } else {
+                    $this->unenrol_user($instance, $user->id);
+                }
             }
         }
 
