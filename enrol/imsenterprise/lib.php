@@ -62,9 +62,14 @@ var $log;
 * earlier types as well, I believe.
 *
 */
-function cron() {
+function cron($disabled = true) {
     global $CFG;
-
+    
+    if ($disabled) {
+        mtrace('[IMS Enterprise] cron is disabled by default due to lack of timing control');
+        return;
+    }
+    
     // Get configs
     $imsfilelocation    = $this->get_config('imsfilelocation');
     $logtolocation      = $this->get_config('logtolocation');
@@ -234,7 +239,7 @@ function cron() {
 
         $eventdata = new stdClass();
         $eventdata->modulename        = 'moodle';
-        $eventdata->component         = 'imsenterprise';
+        $eventdata->component         = 'enrol_imsenterprise';
         $eventdata->name              = 'imsenterprise_enrolment';
         $eventdata->userfrom          = get_admin();
         $eventdata->userto            = get_admin();
