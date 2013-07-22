@@ -16,9 +16,11 @@ class sis_get_course_activity_by_idnumber_form extends moodleform {
             $mform->addElement('text', 'wspassword', 'wspassword');
         } else  if ($data['authmethod'] == 'token') {
             $mform->addElement('text', 'token', 'token');
+            $mform->setType('token', PARAM_RAW);
         }
         
         $mform->addElement('text', 'idnumber', 'idnumber');
+        $mform->setType('idnumber', PARAM_RAW);
         
         $mform->addElement('hidden', 'function');
         $mform->setType('function', PARAM_SAFEDIR);
@@ -69,6 +71,7 @@ class sis_get_bulk_course_activity_form extends moodleform {
             $mform->addElement('text', 'wspassword', 'wspassword');
         } else  if ($data['authmethod'] == 'token') {
             $mform->addElement('text', 'token', 'token');
+            $mform->setType('token', PARAM_RAW);
         }
         
         $mform->addElement('text', 'datetime', 'datetime');
@@ -123,9 +126,11 @@ class sis_get_course_assessments_by_idnumber_form extends moodleform {
             $mform->addElement('text', 'wspassword', 'wspassword');
         } else  if ($data['authmethod'] == 'token') {
             $mform->addElement('text', 'token', 'token');
+            $mform->setType('token', PARAM_RAW);
         }
         
         $mform->addElement('text', 'idnumber', 'idnumber');
+        $mform->setType('idnumber', PARAM_RAW);
         
         $mform->addElement('hidden', 'function');
         $mform->setType('function', PARAM_SAFEDIR);
@@ -176,6 +181,7 @@ class sis_get_bulk_course_assessments_form extends moodleform {
             $mform->addElement('text', 'wspassword', 'wspassword');
         } else  if ($data['authmethod'] == 'token') {
             $mform->addElement('text', 'token', 'token');
+            $mform->setType('token', PARAM_RAW);
         }
         
         $mform->addElement('text', 'datetime', 'datetime');
@@ -228,9 +234,11 @@ class sis_get_course_results_by_idnumber_form extends moodleform {
             $mform->addElement('text', 'wspassword', 'wspassword');
         } else  if ($data['authmethod'] == 'token') {
             $mform->addElement('text', 'token', 'token');
+            $mform->setType('token', PARAM_RAW);
         }
         
         $mform->addElement('text', 'idnumber', 'idnumber');
+        $mform->setType('idnumber', PARAM_RAW);
         
         $mform->addElement('hidden', 'function');
         $mform->setType('function', PARAM_SAFEDIR);

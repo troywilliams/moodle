@@ -82,7 +82,12 @@ function sis_get_course_activity_by_idnumber($idnumber) {
     if (!is_string($idnumber)) {
         throw new invalid_parameter_exception('string required');
     }    
-    $course = $DB->get_record('course', array('idnumber'=>$idnumber), 'id, shortname, fullname, idnumber, visible');
+    try {
+        $course = $DB->get_record('course', array('idnumber'=>$idnumber), 'id, shortname, fullname, idnumber, visible', MUST_EXIST);
+    } catch (dml_missing_record_exception $e) {
+        // create new moodle exception SoapFault will send out
+       throw new moodle_exception($e->getMessage());
+    }
     return sis_get_course_activity($course);
 }
 /**
@@ -219,9 +224,15 @@ function sis_get_course_assessments_by_idnumber($idnumber) {
     $idnumber = trim($idnumber);
     if (!is_string($idnumber)) {
         throw new invalid_parameter_exception('string required');
-    }    
-    $course = $DB->get_record('course', array('idnumber'=>$idnumber), 'id, shortname, fullname, idnumber, visible', MUST_EXIST);
- 
+    }
+    
+    try {
+        $course = $DB->get_record('course', array('idnumber'=>$idnumber), 'id, shortname, fullname, idnumber, visible', MUST_EXIST);
+    } catch (dml_missing_record_exception $e) {
+        // create new moodle exception SoapFault will send out
+       throw new moodle_exception($e->getMessage());
+    }
+    
     $course->assessments = sis_get_course_assessments($course);
    
     $sql = "SELECT c.id, c.idnumber, c.shortname, c.fullname 
@@ -367,7 +378,14 @@ function sis_get_course_results_by_idnumber($idnumber) {
     if (!is_string($idnumber)) {
         throw new invalid_parameter_exception('incorrect parameter');
     }    
-    $course = $DB->get_record('course', array('idnumber'=>$idnumber), 'id, shortname, fullname, idnumber, visible', MUST_EXIST);
+    
+    try {
+        $course = $DB->get_record('course', array('idnumber'=>$idnumber), 'id, shortname, fullname, idnumber, visible', MUST_EXIST);
+    } catch (dml_missing_record_exception $e) {
+        // create new moodle exception SoapFault will send out
+       throw new moodle_exception($e->getMessage());
+    }
+    
     $course->results = sis_get_course_results($course);
 
     $enrolmetalinks = $DB->get_records('enrol', array('enrol'=>'meta', 'customint1'=>$course->id), 'id, courseid, customint1');
