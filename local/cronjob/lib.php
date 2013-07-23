@@ -82,13 +82,13 @@ function cronjob_run_job($id, $cron=null, $manual=false) {
     //require_capability('moodle/site:config', $context);
     
     //  Logger details 
-    $loggertype  = 'Cron Job';
-    $loggerstart = 'Starting cron job: '. $cron->name .' schedule to run at '. date('d/m/Y H:i', $cron->nextrun);
+    //$loggertype  = 'Cron Job';
+    //$loggerstart = 'Starting cron job: '. $cron->name .' schedule to run at '. date('d/m/Y H:i', $cron->nextrun);
     
     //  If a manual request, output log details for the user
     if ($manual) {
-        $loggertype  = 'Cron Job - manual';
-        $loggerstart = 'Starting manual request to run cron job: '. $cron->name;
+        //$loggertype  = 'Cron Job - manual';
+        //$loggerstart = 'Starting manual request to run cron job: '. $cron->name;
         //print_header($loggertype, 'Cron Job - '. $cron->name, $cron->name, '', '', false, '&nbsp;', '&nbsp;');
         if (!CLI_SCRIPT) {
             admin_externalpage_setup('uowcronjobconfig');
@@ -98,19 +98,20 @@ function cronjob_run_job($id, $cron=null, $manual=false) {
     }
     
     //  Start logger
-    $logger =& logger_get_logger($cron->name, $loggertype, $manual);
-    $logger->fine($loggerstart);
+    //$logger =& logger_get_logger($cron->name, $loggertype, $manual);
+    //$logger->fine($loggerstart);
     
     //  Run the cron script file
-    $starttime = microtime(true);
+    //$starttime = microtime(true);
     
     if (!file_exists($cron->filepath)){
-        $logger->error(get_string('filenotfound', 'error'));
+        //$logger->error(get_string('filenotfound', 'error'));
+        mtrace(get_string('filenotfound', 'error'));
     } else {
         require_once($cron->filepath);
     }
     
-    $endtime = microtime(true);
+    //$endtime = microtime(true);
     
     //  Close page if needed
     if ($manual) {
@@ -130,7 +131,7 @@ function cronjob_run_job($id, $cron=null, $manual=false) {
     //  Just to keep php happy
     date_default_timezone_set('Pacific/Auckland');
     
-    $logger->info('Job duration: '. round(($endtime - $starttime), 3) .' s<br />Job compleated at '. date('D j, M y - h:i a', $cron->lastrun) .' next time that this job is schedule to start is on '. date('D j, M y - h:i a', $cron->nextrun));
+    //$logger->info('Job duration: '. round(($endtime - $starttime), 3) .' s<br />Job compleated at '. date('D j, M y - h:i a', $cron->lastrun) .' next time that this job is schedule to start is on '. date('D j, M y - h:i a', $cron->nextrun));
     
     //  Update the cron record with new next/last run dates/times
     $DB->update_record('uow_cronjob', $cron);
