@@ -1,0 +1,37 @@
+<?php
+$string['pluginname'] = 'New library titles';
+$string['addnewlibrarytitle'] = 'Add a new library title';
+$string['defaultblocktitle'] = 'New library titles';
+$string['whatcall'] = 'What would you like to call this block';
+$string['userid'] = 'The User ID to retrieve RSS feeds from for selection as new items lists. The default is 0 which is the root user ID. You might consider creating a local account for adding new items RSS feeds and use that users ID here. NOTE: If you change the userid you must click Save-Changes before choosing the feeds below';
+$string['cacheduration'] = 'Cache duration';
+$string['cacheduration_description'] = 'Set the minimum time for which a feed will be cached';
+$string['choosefeedlabel'] = 'Choose the feeds which you would like to make available to users of this block';
+$string['rssuserid'] = 'RSS feed User ID';
+$string['managefeeds'] = 'Configure/Choose Feeds';
+$string['errorloadingfeed'] = 'Error loading this RSS feed ({$a})';
+$string['feed'] = 'Feed';
+$string['feeddeleted'] = 'Feed deleted!';
+$string['feedstitle'] = 'New library titles';
+$string['feedsupdated'] = 'Feeds updated successfully';
+$string['feedsupdatefailed'] = 'Feeds update Failed';
+$string['feedsnoupdate'] = 'No changes made';
+$string['nouserfeeds'] = 'No feeds available for userid';
+$string['viewfeed'] = 'View feed';
+$string['feedurl'] = 'Feed URL';
+$string['enableautodiscovery'] = 'Enable auto-discovery of feeds?';
+$string['enableautodiscovery_help'] = 'If enabled, feeds on web pages are found automatically. For example, if http://docs.moodle.org is entered, then http://docs.moodle.org/en/index.php?title=Special:RecentChanges&feed=rss would be found.';
+$string['customtitlelabel'] = 'Custom title (leave blank to use title supplied by feed):';
+$string['shownumentrieslabel'] = 'Max number entries to show per block.';
+$string['feedsaddedit'] = 'Add/edit feeds';
+$string['deletefeedconfirm'] = 'Are you sure you want to delete this feed?';
+$string['managefeeds'] = 'Manage library titles';
+$string['feedstitle'] = 'New library titles';
+$string['editafeed'] = 'Edit a feed';
+$string['disabledrssfeeds'] = 'RSS feeds are disabled';
+$string['feedsconfigurenewinstance'] = 'Click here to configure this block to display RSS feeds.';
+$string['feedsconfigurenewinstance2'] = 'Click the edit icon above to configure this block to display new library titles.';
+$string['new_titles:managefeeds'] = 'Manage new library titles(feeds)';
+$string['new_titles:selectfeeds'] = 'Select new library titles(feeds)';
+$string['nofeeds'] = 'There are no RSS feeds defined';
+
