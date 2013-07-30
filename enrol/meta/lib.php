@@ -45,9 +45,7 @@ class enrol_meta_plugin extends enrol_plugin {
             return get_string('pluginname', 'enrol_'.$enrol);
         } else if (empty($instance->name)) {
             $enrol = $this->get_name();
-            $course = $DB->get_record('course', array('id'=>$instance->customint1));
-            $coursename = format_string(get_course_display_name_for_list($course));
-            return get_string('pluginname', 'enrol_' . $enrol) . ' (' . $coursename . ')';
+            return get_string('pluginname', 'enrol_'.$enrol) . ' (' . format_string($DB->get_field('course', 'fullname', array('id'=>$instance->customint1))) . ')';
         } else {
             return format_string($instance->name);
         }
@@ -64,6 +62,9 @@ class enrol_meta_plugin extends enrol_plugin {
             return NULL;
         }
         // multiple instances supported - multiple parent courses linked
+        if ($this->get_config('manageui') == 1) {
+            return new moodle_url('/enrol/meta/manage.php', array('id'=>$courseid));
+        }
         return new moodle_url('/enrol/meta/addinstance.php', array('id'=>$courseid));
     }
 
@@ -138,6 +139,30 @@ class enrol_meta_plugin extends enrol_plugin {
 
         require_once("$CFG->dirroot/enrol/meta/locallib.php");
         enrol_meta_sync($instance->courseid);
+    }
+
+     /**
+     * Returns edit icons for the page with list of instances.
+     * @param stdClass $instance
+     * @return array
+     */
+    public function get_action_icons(stdClass $instance) {
+        global $OUTPUT;
+
+        if ($instance->enrol !== 'meta') {
+            throw new coding_exception('invalid enrol instance!');
+        }
+        $context = context_course::instance($instance->courseid);
+
+        $icons = array();
+
+        if (has_capability('enrol/meta:config', $context) and ($this->get_config('manageui') == 1)) {
+            $editlink = new moodle_url("/enrol/meta/manage.php", array('id'=>$instance->courseid));
+            $icons[] = $OUTPUT->action_icon($editlink, new pix_icon('t/edit', get_string('edit'), 'core',
+                    array('class' => 'iconsmall')));
+        }
+
+        return $icons;
     }
 
     /**
