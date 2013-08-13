@@ -85,6 +85,35 @@ function xmldb_forum_upgrade($oldversion) {
     // Moodle v2.5.0 release upgrade line.
     // Put any upgrade step following this.
 
+     // Check if anonymous fields are setup and create if needed
+    if ($oldversion < 2013050101) {
+        $table = new xmldb_table('forum');
+        $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'intro');
+
+        if(!$dbman->field_exists($table,$field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('forum_posts');
+        $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'mailnow');
+
+        if(!$dbman->field_exists($table,$field)) {
+            $dbman->add_field($table, $field);
+        }
+
+    // UOW - check for postnum field in forum_posts, if not create and rename reference
+        $table = new xmldb_table('forum_posts');
+        $field = new xmldb_field('postnum', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'anonymous');
+        // check old postnum exists
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // rename old postnum to reference
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->rename_field($table, $field, 'reference');
+        }
+        upgrade_mod_savepoint(true, 2013050101, 'forum');
+    }
 
     return true;
 }
