@@ -109,7 +109,7 @@ function xmldb_forum_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
         // rename old postnum to reference
-        if (!$dbman->field_exists($table, $field)) {
+        if ($dbman->field_exists($table, $field)) {
             $dbman->rename_field($table, $field, 'reference');
         }
         upgrade_mod_savepoint(true, 2013050101, 'forum');
