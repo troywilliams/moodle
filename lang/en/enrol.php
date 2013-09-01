@@ -121,4 +121,5 @@ $string['extremovedaction_help'] = 'Select action to carry out when user enrolme
 $string['extremovedsuspend'] = 'Disable course enrolment';
 $string['extremovedsuspendnoroles'] = 'Disable course enrolment and remove roles';
 $string['extremovedkeep'] = 'Keep user enrolled';
+$string['extremovedkeepuntilnoroles'] = 'Keep user enrolled until no more roles exist';
 $string['extremovedunenrol'] = 'Unenrol user from course';

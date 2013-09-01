@@ -601,6 +601,17 @@ class enrol_flatfile_plugin extends enrol_plugin {
                             $trace->output("User $user->id enrolment was suspended in course $course->id (enrol_$instance->enrol)", 1);
                         }
                     }
+                } else if ($action == ENROL_EXT_REMOVED_KEEPUNTILNOROLES) {
+                    $unenrolled = true;
+                    if (!$plugin->roles_protected()) {
+                        role_unassign_all(array('contextid'=>$context->id, 'userid'=>$user->id, 'roleid'=>$roleid, 'component'=>'enrol_'.$instance->enrol, 'itemid'=>$instance->id), true);
+                        $trace->output("User $user->id role removed {$roleid} from course $course->id (enrol_$instance->enrol)", 1);
+                    }
+                    $count = $DB->count_records('role_assignments', array('userid'=>$user->id, 'contextid'=>$context->id));
+                    if ($count == 0) { // if no role, do a full user unenrol
+                        $plugin->unenrol_user($instance, $user->id);
+                        $trace->output("User $user->id was unenrolled from course $course->id (enrol_$instance->enrol)", 1);
+                    }
                 }
             }
 
