@@ -68,6 +68,13 @@ define('ENROL_EXT_REMOVED_SUSPEND', 2);
 define('ENROL_EXT_REMOVED_SUSPENDNOROLES', 3);
 
 /**
+ * When a user's role disappears from external source, the roles assigned by enrol instance
+ * is removed. When the user has no more roles assigned by the enrol instance, the enrolment
+ * is completely removed
+ * */
+define('ENROL_EXT_REMOVED_KEEPUNTILNOROLES', 4);
+
+/**
  * Returns instances of enrol plugins
  * @param bool $enabled return enabled only
  * @return array of enrol plugins name=>instance

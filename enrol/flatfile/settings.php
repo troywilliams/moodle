@@ -43,9 +43,10 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configcheckbox('enrol_flatfile/mailadmins', get_string('notifyadmin', 'enrol_flatfile'), '', 0));
 
-    $options = array(ENROL_EXT_REMOVED_UNENROL        => get_string('extremovedunenrol', 'enrol'),
-                     ENROL_EXT_REMOVED_KEEP           => get_string('extremovedkeep', 'enrol'),
-                     ENROL_EXT_REMOVED_SUSPENDNOROLES => get_string('extremovedsuspendnoroles', 'enrol'));
+    $options = array(ENROL_EXT_REMOVED_UNENROL          => get_string('extremovedunenrol', 'enrol'),
+                     ENROL_EXT_REMOVED_KEEP             => get_string('extremovedkeep', 'enrol'),
+                     ENROL_EXT_REMOVED_KEEPUNTILNOROLES => get_string('extremovedkeepuntilnoroles', 'enrol'),
+                     ENROL_EXT_REMOVED_SUSPENDNOROLES   => get_string('extremovedsuspendnoroles', 'enrol'));
     $settings->add(new admin_setting_configselect('enrol_flatfile/unenrolaction', get_string('extremovedaction', 'enrol'), get_string('extremovedaction_help', 'enrol'), ENROL_EXT_REMOVED_SUSPENDNOROLES, $options));
 
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
