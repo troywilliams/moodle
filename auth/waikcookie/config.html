@@ -1,0 +1,55 @@
+<?php
+
+// set to defaults if undefined
+if (!isset($config->cookiepage)) {
+    $config->cookiepage = 'https://cookie.waikato.ac.nz/cgi-bin/WCLogin';
+}
+if (!isset($config->returnpage)) {
+    $config->returnpage = 'http://www.waikato.ac.nz';
+}
+
+?>
+<table cellspacing="0" cellpadding="5" border="0">
+
+<tr valign="top" class="required">
+    <td align="right">
+    Waikcookie page:
+    </td>
+    <td>
+        <input name="cookiepage" type="text" size="45" value="<?php echo $config->cookiepage; ?>" />
+        <?php
+        if (isset($err['cookiepage'])) {
+            formerr($err['cookiepage']);
+        }
+        ?>
+    </td>
+    <td>
+        Enter the URL where users can enter the UoW credentials and obtain a Waikcookie
+    </td>
+</tr>
+<tr>
+    <td colspan="3" height="8"></td>
+</tr>
+<tr valign="top" class="required">
+    <td align="right">
+        Logout address: 
+    </td>
+    <td>
+        <input name="returnpage" type="text" size="45" value="<?php echo $config->returnpage; ?>" />
+        <?php
+        if (isset($err['returnpage'])) {
+            formerr($err['returnpage']);
+        }
+        ?>
+    </td>
+    <td>
+        Enter a URL where users should be redirected when logout
+    </td>
+</tr>
+
+</table>
+<table cellspacing="0" cellpadding="5" border="0">
+<?php
+print_auth_lock_options('waikcookie', $user_fields, get_string('auth_fieldlocks_help', 'auth'), false, false);
+?>
+</table>

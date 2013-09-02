@@ -1,0 +1,5 @@
+CHANGES
+-------
+2.0
+- included version.php file set at 201021400
+- DB layer 2.0 changes http://docs.moodle.org/en/Development:DB_layer_2.0_migration_docs
