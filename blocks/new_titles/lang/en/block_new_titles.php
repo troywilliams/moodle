@@ -1,6 +1,7 @@
 <?php
 $string['pluginname'] = 'New library titles';
 $string['addnewlibrarytitle'] = 'Add a new library title';
+$string['new_titles:addinstance'] = 'Add a new library titles block';
 $string['defaultblocktitle'] = 'New library titles';
 $string['whatcall'] = 'What would you like to call this block';
 $string['userid'] = 'The User ID to retrieve RSS feeds from for selection as new items lists. The default is 0 which is the root user ID. You might consider creating a local account for adding new items RSS feeds and use that users ID here. NOTE: If you change the userid you must click Save-Changes before choosing the feeds below';
