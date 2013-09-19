@@ -1731,7 +1731,6 @@ class mod_quiz_display_options extends question_display_options {
                 self::MARK_AND_MAX, self::MAX_ONLY);
         $options->feedback = self::extract($quiz->reviewspecificfeedback, $when);
         $options->generalfeedback = self::extract($quiz->reviewgeneralfeedback, $when);
-        $options->allanswers = self::extract($quiz->reviewallanswers, $when);
         $options->rightanswer = self::extract($quiz->reviewrightanswer, $when);
         $options->allanswers = self::extract($quiz->reviewallanswers, $when);
         $options->overallfeedback = self::extract($quiz->reviewoverallfeedback, $when);
