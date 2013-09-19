@@ -134,6 +134,7 @@ class restore_quiz_activity_structure_step extends restore_questions_activity_st
                 define('QUIZ_OLD_SOLUTIONS',       16*0x1041);
                 define('QUIZ_OLD_GENERALFEEDBACK', 32*0x1041);
                 define('QUIZ_OLD_OVERALLFEEDBACK',  1*0x4440000);
+                define('QUIZ_OLD_ALLFEEDBACK',      2*0x4440000);
             }
 
             $oldreview = $data->review;
@@ -193,6 +194,16 @@ class restore_quiz_activity_structure_step extends restore_questions_activity_st
                     ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_ANSWERS ?
                             mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
                     ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_ANSWERS ?
+                            mod_quiz_display_options::AFTER_CLOSE : 0);
+
+            $data->reviewallanswers =
+                    ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ALLFEEDBACK ?
+                            mod_quiz_display_options::DURING : 0) |
+                    ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ALLFEEDBACK ?
+                            mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                    ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_ALLFEEDBACK ?
+                            mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                    ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_ALLFEEDBACK ?
                             mod_quiz_display_options::AFTER_CLOSE : 0);
 
             $data->reviewoverallfeedback =

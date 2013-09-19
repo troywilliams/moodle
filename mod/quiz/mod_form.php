@@ -48,6 +48,7 @@ class mod_quiz_mod_form extends moodleform_mod {
             'specificfeedback' => array('specificfeedback', 'question'),
             'generalfeedback'  => array('generalfeedback', 'question'),
             'rightanswer'      => array('rightanswer', 'question'),
+            'allanswers'       => array('allanswers', 'quiz'),
             'overallfeedback'  => array('reviewoverallfeedback', 'quiz'),
         );
         parent::__construct($current, $section, $cm, $course);
@@ -244,6 +245,8 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->disabledIf('attemptduring', 'preferredbehaviour',
                 'neq', 'wontmatch');
         $mform->disabledIf('overallfeedbackduring', 'preferredbehaviour',
+                'neq', 'wontmatch');
+        $mform->disabledIf('allanswersduring', 'preferredbehaviour',
                 'neq', 'wontmatch');
 
         // -------------------------------------------------------------------------------

@@ -406,6 +406,19 @@ function xmldb_quiz_upgrade($oldversion) {
     // Moodle v2.5.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2013091600) {
+        // Define field reviewallanswers to be added to quiz
+        $table = new xmldb_table('quiz');
+        $field = new xmldb_field('reviewallanswers', XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'reviewrightanswer');
+
+        // Conditionally launch add field reviewallanswers
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint(true, 2013091600, 'quiz');
+    }
 
     return true;
 }

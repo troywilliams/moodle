@@ -71,6 +71,7 @@ class mod_quiz_generator extends testing_module_generator {
             'reviewspecificfeedback' => $alwaysvisible,
             'reviewgeneralfeedback'  => $alwaysvisible,
             'reviewrightanswer'      => $alwaysvisible,
+            'reviewallanswers'       => $alwaysvisible,
             'reviewoverallfeedback'  => $alwaysvisible,
             'questionsperpage'       => 1,
             'shufflequestions'       => 0,
