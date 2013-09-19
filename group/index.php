@@ -67,6 +67,8 @@ if (!$singlegroup) {
         case 'ajax_getmembersingroup':
         case 'showgroupsettingsform':
         case 'showaddmembersform':
+        case 'showadvancedaddmembersform':
+            break;
         case 'updatemembers':
             print_error('errorselectone', 'group', $returnurl);
     }
@@ -129,6 +131,10 @@ switch ($action) {
         redirect(new moodle_url('/group/members.php', array('group'=>$groupids[0])));
         break;
 
+    case 'showadvancedaddmembersform':
+        redirect(new moodle_url('/group/advanced_assign.php', array('courseid'=>$courseid)));
+        break;
+
     case 'updatemembers': //Currently reloading.
         break;
 
@@ -165,6 +171,7 @@ if (ajaxenabled()) {
     $showeditgroupsettingsform_disabled = '';
     $deletegroup_disabled = '';
 }
+$showadvancedaddmembersform_disabled = '';
 
 echo $OUTPUT->heading(format_string($course->shortname, true, array('context' => $context)) .' '.$strgroups, 3);
 echo '<form id="groupeditform" action="index.php" method="post">'."\n";
@@ -267,6 +274,8 @@ echo '</select>'."\n";
 
 echo '<p><input type="submit" ' . $showaddmembersform_disabled . ' name="act_showaddmembersform" '
         . 'id="showaddmembersform" value="' . get_string('adduserstogroup', 'group'). '" /></p>'."\n";
+echo '<p><input type="submit" ' . $showadvancedaddmembersform_disabled . ' name="act_showadvancedaddmembersform" '
+        . 'id="showadvancedaddmembersform" value="' . get_string('advancedadduserstogroups', 'group'). '" /></p>'."\n";
 echo '</td>'."\n";
 echo '</tr>'."\n";
 echo '</table>'."\n";
