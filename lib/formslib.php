@@ -261,10 +261,10 @@ abstract class moodleform {
         $submission = array();
         if ($method == 'post') {
             if (!empty($_POST)) {
-                $submission = $_POST;
+                $submission = $this->_get_post_params();
             }
         } else {
-            $submission = array_merge_recursive($_GET, $_POST); // emulate handling of parameters in xxxx_param()
+            $submission = array_merge_recursive($_GET, $this->_get_post_params()); // Emulate handling of parameters in xxxx_param().
         }
 
         // following trick is needed to enable proper sesskey checks when using GET forms
@@ -281,6 +281,37 @@ abstract class moodleform {
         $this->detectMissingSetType();
 
         $this->_form->updateSubmission($submission, $files);
+    }
+
+    /**
+     * Internal method. Gets all POST variables, bypassing max_input_vars limit if needed.
+     *
+     * @return array All POST variables as an array, in the same format as $_POST.
+     */
+    protected function _get_post_params() {
+        $enctype = $this->_form->getAttribute('enctype');
+        $max = (int)ini_get('max_input_vars');
+
+        if (empty($max) || count($_POST, COUNT_RECURSIVE) < $max || (!empty($enctype) && $enctype == 'multipart/form-data')) {
+            return $_POST;
+        }
+
+        // Large POST request with enctype supported by php://input.
+        // Parse php://input in chunks to bypass max_input_vars limit, which also applies to parse_str().
+        $allvalues = array();
+        $values = array();
+        $str = file_get_contents("php://input");
+        $delim = '&';
+
+        $fun = create_function('$p', 'return implode("'.$delim.'", $p);');
+        $chunks = array_map($fun, array_chunk(explode($delim, $str), $max));
+
+        foreach ($chunks as $chunk) {
+            parse_str($chunk, $values);
+            $allvalues = array_merge_recursive($allvalues, $values);
+        }
+
+        return $allvalues;
     }
 
     /**
@@ -2136,6 +2167,7 @@ function qf_errorHandler(element, _qfMsg) {
     return true;
   }
 
+
   if (_qfMsg != \'\') {
     var errorSpan = document.getElementById(\'id_error_\'+element.name);
     if (!errorSpan) {
@@ -2143,6 +2175,8 @@ function qf_errorHandler(element, _qfMsg) {
       errorSpan.id = \'id_error_\'+element.name;
       errorSpan.className = "error";
       element.parentNode.insertBefore(errorSpan, element.parentNode.firstChild);
+      document.getElementById(errorSpan.id).setAttribute(\'TabIndex\', \'0\');
+      document.getElementById(errorSpan.id).focus();
     }
 
     while (errorSpan.firstChild) {
@@ -2150,11 +2184,14 @@ function qf_errorHandler(element, _qfMsg) {
     }
 
     errorSpan.appendChild(document.createTextNode(_qfMsg.substring(3)));
-    errorSpan.appendChild(document.createElement("br"));
 
     if (div.className.substr(div.className.length - 6, 6) != " error"
-        && div.className != "error") {
-      div.className += " error";
+      && div.className != "error") {
+        div.className += " error";
+        linebreak = document.createElement("br");
+        linebreak.className = "error";
+        linebreak.id = \'id_error_break_\'+element.name;
+        errorSpan.parentNode.insertBefore(linebreak, errorSpan.nextSibling);
     }
 
     return false;
@@ -2162,6 +2199,10 @@ function qf_errorHandler(element, _qfMsg) {
     var errorSpan = document.getElementById(\'id_error_\'+element.name);
     if (errorSpan) {
       errorSpan.parentNode.removeChild(errorSpan);
+    }
+    var linebreak = document.getElementById(\'id_error_break_\'+element.name);
+    if (linebreak) {
+      linebreak.parentNode.removeChild(linebreak);
     }
 
     if (div.className.substr(div.className.length - 6, 6) == " error") {
@@ -2210,7 +2251,7 @@ function validate_' . $this->_formName . '_' . $escapedElementName . '(element) 
   ret = validate_' . $this->_formName . '_' . $escapedElementName.'(frm.elements[\''.$elementName.'\']) && ret;
   if (!ret && !first_focus) {
     first_focus = true;
-    frm.elements[\''.$elementName.'\'].focus();
+    document.getElementById(\'id_error_'.$elementName.'\').focus();
   }
 ';
 

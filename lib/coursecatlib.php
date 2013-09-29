@@ -48,7 +48,7 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
         'descriptionformat' => null, // not cached
         'parent' => array('pa', 0),
         'sortorder' => array('so', 0),
-        'coursecount' => null, // not cached
+        'coursecount' => array('cc', 0),
         'visible' => array('vi', 1),
         'visibleold' => null, // not cached
         'timemodified' => null, // not cached
@@ -1895,6 +1895,7 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
             foreach ($rs as $record) {
                 // If the category's parent is not visible to the user, it is not visible as well.
                 if (!$record->parent || isset($baselist[$record->parent])) {
+                    context_helper::preload_from_record($record);
                     $context = context_coursecat::instance($record->id);
                     if (!$record->visible && !has_capability('moodle/category:viewhiddencategories', $context)) {
                         // No cap to view category, added to neither $baselist nor $thislist
@@ -2136,12 +2137,11 @@ class course_in_list implements IteratorAggregate {
     public function has_course_overviewfiles() {
         global $CFG;
         if (empty($CFG->courseoverviewfileslimit)) {
-            return 0;
+            return false;
         }
-        require_once($CFG->libdir. '/filestorage/file_storage.php');
         $fs = get_file_storage();
         $context = context_course::instance($this->id);
-        return $fs->is_area_empty($context->id, 'course', 'overviewfiles');
+        return !$fs->is_area_empty($context->id, 'course', 'overviewfiles');
     }
 
     /**

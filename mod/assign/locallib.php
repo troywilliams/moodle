@@ -1144,7 +1144,7 @@ class assign {
                 if ($grade < 0) {
                     $displaygrade = '';
                 } else {
-                    $displaygrade = format_float($grade);
+                    $displaygrade = format_float($grade, 2);
                 }
                 $o .= '<label class="accesshide" for="quickgrade_' . $userid . '">' .
                        get_string('usergrade', 'assign') .
@@ -1225,10 +1225,19 @@ class assign {
      */
     public function list_participants($currentgroup, $idsonly) {
         if ($idsonly) {
-            return get_enrolled_users($this->context, 'mod/assign:submit', $currentgroup, 'u.id');
+            $users = get_enrolled_users($this->context, 'mod/assign:submit', $currentgroup, 'u.id');
         } else {
-            return get_enrolled_users($this->context, 'mod/assign:submit', $currentgroup);
+            $users = get_enrolled_users($this->context, 'mod/assign:submit', $currentgroup);
         }
+
+        $cm = $this->get_course_module();
+        foreach ($users as $userid => $user) {
+            if (!groups_course_module_visible($cm, $userid)) {
+                unset($users[$userid]);
+            }
+        }
+
+        return $users;
     }
 
     /**
@@ -1260,7 +1269,7 @@ class assign {
      * @return int number of matching users
      */
     public function count_participants($currentgroup) {
-        return count_enrolled_users($this->context, 'mod/assign:submit', $currentgroup);
+        return count($this->list_participants($currentgroup, true));
     }
 
     /**
@@ -2650,11 +2659,13 @@ class assign {
             if ($teamsubmission) {
                 $showsubmit = $showedit &&
                               $teamsubmission &&
-                              ($teamsubmission->status == ASSIGN_SUBMISSION_STATUS_DRAFT);
+                              ($teamsubmission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) &&
+                              !$this->submission_empty($teamsubmission);
             } else {
                 $showsubmit = $showedit &&
                               $submission &&
-                              ($submission->status == ASSIGN_SUBMISSION_STATUS_DRAFT);
+                              ($submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) &&
+                              !$this->submission_empty($submission);
             }
             if (!$this->get_instance()->submissiondrafts) {
                 $showsubmit = false;
@@ -3308,11 +3319,17 @@ class assign {
                 }
             }
 
-            $showsubmit = ($submission || $teamsubmission) && $showlinks;
-            if ($teamsubmission && ($teamsubmission->status != ASSIGN_SUBMISSION_STATUS_DRAFT)) {
+            $showsubmit = ($submission || $teamsubmission) && $showlinks && $this->submissions_open($user->id);
+            if ($teamsubmission && ($teamsubmission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED)) {
                 $showsubmit = false;
             }
-            if ($submission && ($submission->status != ASSIGN_SUBMISSION_STATUS_DRAFT)) {
+            if ($teamsubmission && $this->submission_empty($teamsubmission)) {
+                $showsubmit = false;
+            }
+            if ($submission && ($submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED)) {
+                $showsubmit = false;
+            }
+            if ($submission && $this->submission_empty($submission)) {
                 $showsubmit = false;
             }
             if (!$this->get_instance()->submissiondrafts) {
@@ -3394,7 +3411,7 @@ class assign {
                 // Only show the grade if it is not hidden in gradebook.
                 if (!empty($gradebookgrade->grade) && ($cangrade || !$gradebookgrade->hidden)) {
                     if ($controller = $gradingmanager->get_active_controller()) {
-                        $controller->set_grade_range(make_grades_menu($this->get_instance()->grade));
+                        $controller->set_grade_range(make_grades_menu($this->get_instance()->grade), $this->get_instance()->grade > 0);
                         $gradefordisplay = $controller->render_grade($PAGE,
                                                                      $grade->id,
                                                                      $gradingitem,
@@ -3491,7 +3508,7 @@ class assign {
 
             // Now get the gradefordisplay.
             if ($controller) {
-                $controller->set_grade_range(make_grades_menu($this->get_instance()->grade));
+                $controller->set_grade_range(make_grades_menu($this->get_instance()->grade), $this->get_instance()->grade > 0);
                 $grade->gradefordisplay = $controller->render_grade($PAGE,
                                                                      $grade->id,
                                                                      $gradingitem,
@@ -3660,9 +3677,10 @@ class assign {
                 $team = groups_get_members($submission->groupid, 'u.id');
 
                 foreach ($team as $member) {
-                    $submission->groupid = 0;
-                    $submission->userid = $member->id;
-                    $this->gradebook_item_update($submission, null);
+                    $membersubmission = clone $submission;
+                    $membersubmission->groupid = 0;
+                    $membersubmission->userid = $member->id;
+                    $this->gradebook_item_update($membersubmission, null);
                 }
                 return;
             }
@@ -3846,7 +3864,15 @@ class assign {
             }
         }
 
-        if ($this->grading_disabled($userid)) {
+        // See if this user grade is locked in the gradebook.
+        $gradinginfo = grade_get_grades($this->get_course()->id,
+                                        'mod',
+                                        'assign',
+                                        $this->get_instance()->id,
+                                        array($userid));
+        if ($gradinginfo &&
+                isset($gradinginfo->items[0]->grades[$userid]) &&
+                $gradinginfo->items[0]->grades[$userid]->locked) {
             return false;
         }
 
@@ -4200,6 +4226,9 @@ class assign {
         require_once($CFG->dirroot . '/mod/assign/submissionconfirmform.php');
         require_sesskey();
 
+        if (!$this->submissions_open()) {
+            return $this->view_student_error_message();
+        }
         $instance = $this->get_instance();
         $data = new stdClass();
         $adminconfig = $this->get_admin_config();
@@ -4737,6 +4766,25 @@ class assign {
     }
 
     /**
+     * Determine if the current submission is empty or not.
+     *
+     * @param submission $submission the students submission record to check.
+     * @return bool
+     */
+    public function submission_empty($submission) {
+        $allempty = true;
+
+        foreach ($this->submissionplugins as $plugin) {
+            if ($plugin->is_enabled() && $plugin->is_visible()) {
+                if (!$allempty || !$plugin->is_empty($submission)) {
+                    $allempty = false;
+                }
+            }
+        }
+        return $allempty;
+    }
+
+    /**
      * Save assignment submission.
      *
      * @param  moodleform $mform
@@ -4753,6 +4801,10 @@ class assign {
         // Need submit permission to submit an assignment.
         require_capability('mod/assign:submit', $this->context);
         require_sesskey();
+        if (!$this->submissions_open()) {
+            $notices[] = get_string('duedatereached', 'assign');
+            return false;
+        }
         $instance = $this->get_instance();
 
         $data = new stdClass();
@@ -4780,7 +4832,6 @@ class assign {
                 return true;
             }
 
-            $allempty = true;
             $pluginerror = false;
             foreach ($this->submissionplugins as $plugin) {
                 if ($plugin->is_enabled() && $plugin->is_visible()) {
@@ -4788,11 +4839,9 @@ class assign {
                         $notices[] = $plugin->get_error();
                         $pluginerror = true;
                     }
-                    if (!$allempty || !$plugin->is_empty($submission)) {
-                        $allempty = false;
-                    }
                 }
             }
+            $allempty = $this->submission_empty($submission);
             if ($pluginerror || $allempty) {
                 if ($allempty) {
                     $notices[] = get_string('submissionempty', 'mod_assign');
@@ -4842,7 +4891,7 @@ class assign {
 
 
     /**
-     * Determine if this users grade is locked or overridden.
+     * Determine if this users grade can be edited.
      *
      * @param int $userid - The student userid
      * @return bool $gradingdisabled
@@ -4880,6 +4929,7 @@ class assign {
         global $CFG, $USER;
 
         $grademenu = make_grades_menu($this->get_instance()->grade);
+        $allowgradedecimals = $this->get_instance()->grade > 0;
 
         $advancedgradingwarning = false;
         $gradingmanager = get_grading_manager($this->context, 'mod_assign', 'submissions');
@@ -4904,7 +4954,7 @@ class assign {
             }
         }
         if ($gradinginstance) {
-            $gradinginstance->get_controller()->set_grade_range($grademenu);
+            $gradinginstance->get_controller()->set_grade_range($grademenu, $allowgradedecimals);
         }
         return $gradinginstance;
     }
@@ -4968,11 +5018,17 @@ class assign {
             // Use simple direct grading.
             if ($this->get_instance()->grade > 0) {
                 $name = get_string('gradeoutof', 'assign', $this->get_instance()->grade);
-                $gradingelement = $mform->addElement('text', 'grade', $name);
-                $mform->addHelpButton('grade', 'gradeoutofhelp', 'assign');
-                $mform->setType('grade', PARAM_TEXT);
-                if ($gradingdisabled) {
-                    $gradingelement->freeze();
+                if (!$gradingdisabled) {
+                    $gradingelement = $mform->addElement('text', 'grade', $name);
+                    $mform->addHelpButton('grade', 'gradeoutofhelp', 'assign');
+                    $mform->setType('grade', PARAM_RAW);
+                } else {
+                    $mform->addElement('hidden', 'grade', $name);
+                    $mform->hardFreeze('grade');
+                    $mform->setType('grade', PARAM_RAW);
+                    $strgradelocked = get_string('gradelocked', 'assign');
+                    $mform->addElement('static', 'gradedisabled', $name, $strgradelocked);
+                    $mform->addHelpButton('gradedisabled', 'gradeoutofhelp', 'assign');
                 }
             } else {
                 $grademenu = make_grades_menu($this->get_instance()->grade);
@@ -5309,7 +5365,7 @@ class assign {
 
         // Give each submission plugin a chance to process the locking.
         $plugins = $this->get_submission_plugins();
-        $submission = $this->get_user_submission($userid, false);
+        $submission = $this->get_user_submission($userid, true);
         foreach ($plugins as $plugin) {
             if ($plugin->is_enabled() && $plugin->is_visible()) {
                 $plugin->lock($submission);
@@ -5346,7 +5402,7 @@ class assign {
         }
         // Give each submission plugin a chance to process the unlocking.
         $plugins = $this->get_submission_plugins();
-        $submission = $this->get_user_submission($userid, false);
+        $submission = $this->get_user_submission($userid, true);
         foreach ($plugins as $plugin) {
             if ($plugin->is_enabled() && $plugin->is_visible()) {
                 $plugin->unlock($submission);
