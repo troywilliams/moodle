@@ -1604,6 +1604,7 @@ class assign {
                 $uniqueid = self::get_uniqueid_for_user_static($submission->assignment, $user->id);
             }
             $showusers = $submission->blindmarking && !$submission->revealidentities;
+            $info = $this->get_submission_status($user);
             self::send_assignment_notification($grader,
                                                $user,
                                                $messagetype,
@@ -1615,7 +1616,8 @@ class assign {
                                                $modulename,
                                                $submission->name,
                                                $showusers,
-                                               $uniqueid);
+                                               $uniqueid,
+                                                $info);
 
             $flags = $DB->get_record('assign_user_flags', array('userid'=>$user->id, 'assignment'=>$submission->assignment));
             if ($flags) {
@@ -3459,6 +3461,137 @@ class assign {
     }
 
     /**
+     * Returns an object with the submission status details to be used as placeholders in recipient email
+     *
+     * Mostly a merge of functions view_student_summary() and render_assign_submission_status()
+     *
+     * @param stdClass $user the user to return the object for
+     * @return string - the html summary
+     */
+    public function get_submission_status($user) {
+        // Set up output object with default values.
+        $output = new stdClass();
+        $output->submissionstatus = get_string('nosubmission', 'assign');
+        $output->duedate = get_string('duedateno', 'assign');
+        $output->timeremaining = get_string('duedateno', 'assign');
+        $output->lastmodified = get_string('nosubmission', 'assign');
+        $output->filessubmitted = get_string('nosubmission', 'assign');
+
+        if ($this->can_view_submission($user->id)) {
+            $instance = $this->get_instance();
+            $submission = $this->get_user_submission($user->id, false);
+
+            $teamsubmission = null;
+            $submissiongroup = null;
+            $notsubmitted = array();
+            if ($instance->teamsubmission) {
+                $teamsubmission = $this->get_group_submission($user->id, 0, false);
+                $submissiongroup = $this->get_submission_group($user->id);
+                $groupid = 0;
+                if ($submissiongroup) {
+                    $groupid = $submissiongroup->id;
+                }
+                $notsubmitted = $this->get_submission_group_members_who_have_not_submitted($groupid, false);
+            }
+
+            $time = time();
+
+            // Work out the submission status for individual or team.
+            if (!$this->is_any_submission_plugin_enabled()) {
+                $output->submissionstatus = get_string('noonlinesubmissions', 'assign');
+            } else {
+                $output->submissionstatus = get_string('nosubmission', 'assign');
+            }
+            if (!$instance->teamsubmission) {
+                if ($submission) {
+                    $output->submissionstatus = get_string('submissionstatus_' . $submission->status, 'assign');
+                }
+            } else {
+                if ($teamsubmission) {
+                    $submissionsummary = get_string('submissionstatus_' . $teamsubmission->status, 'assign');
+                    if (!empty($notsubmitted)) {
+                        $viewfullnames = has_capability('moodle/site:viewfullnames', $this->get_course_context());
+                        $userslist = array();
+                        foreach ($notsubmitted as $member) {
+                            $userslist[] = fullname($member, $viewfullnames);
+                        }
+                        $userstr = implode(', ', $userslist);
+                        $submissionsummary .= html_writer::empty_tag('br');
+                        $submissionsummary .= get_string('userswhoneedtosubmit', 'assign', $userstr);
+                    }
+                    $output->submissionstatus = $submissionsummary;
+                }
+            }
+
+            // Due date and time remaining.
+            $duedate = $instance->duedate;
+            if ($duedate > 0) {
+                // Due date.
+                if ($flags = $this->get_user_flags($user->id, false)) {
+                    if ($flags->extensionduedate) {
+                        $duedate = $flags->extensionduedate;
+                    }
+                }
+                $output->duedate = userdate($duedate);
+
+                // Time remaining.
+                if ($duedate - $time <= 0) {
+                    if (!$submission ||
+                            $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
+                        if ($this->is_any_submission_plugin_enabled()) {
+                            $output->timeremaining = get_string('overdue', 'assign',
+                                    format_time($time - $duedate));
+                        } else {
+                            $output->timeremaining = get_string('duedatereached', 'assign');
+                        }
+                    } else {
+                        if ($submission->timemodified > $duedate) {
+                            $output->timeremaining = get_string('submittedlate', 'assign',
+                                    format_time($submission->timemodified - $duedate));
+                        } else {
+                            $output->timeremaining = get_string('submittedearly', 'assign',
+                                    format_time($submission->timemodified - $duedate));
+                        }
+                    }
+                } else {
+                    $output->timeremaining = format_time($duedate - $time);
+                }
+            }
+
+            // Last modified and files submitted.
+            $thissubmission = $teamsubmission ? $teamsubmission : $submission;
+            if ($thissubmission) {
+                $output->lastmodified = userdate($thissubmission->timemodified);
+
+                $filessubmitted = array();
+                foreach ($this->get_submission_plugins() as $plugin) {
+                    $pluginshowsummary = !$plugin->is_empty($thissubmission) || !$plugin->allow_submissions();
+                    if ($plugin->is_enabled() &&
+                        $plugin->is_visible() &&
+                        $plugin->has_user_summary() &&
+                        $pluginshowsummary) {
+                        $pluginfiles = $plugin->get_files($thissubmission, $user);
+                        foreach ($pluginfiles as $filename => $file) {
+                            $filessubmitted[] = $filename;
+                        }
+                    }
+                }
+
+                if (!empty($filessubmitted)) {
+                    $output->filessubmitted = implode(', ', $filessubmitted);
+                }
+            }
+        }
+
+        // Format for html output.
+        foreach ($output as $key => $value) {
+            $output->$key = format_string($value);
+        }
+
+        return $output;
+    }
+
+    /**
      * Get the grades for all previous attempts.
      * For each grade - the grader is a full user record,
      * and gradefordisplay is added (rendered from grading manager).
@@ -3975,7 +4108,14 @@ class assign {
                      ' -> ' .
                      format_string($assignmentname, true, $formatparams) . "\n";
         $posttext .= '---------------------------------------------------------------------' . "\n";
-        $posttext .= get_string($messagetype . 'text', 'assign', $info)."\n";
+        // CUSTOM University of Waikato.
+        $messagestring = $messagetype . 'text';
+        if (isset($info->$messagestring)) {
+            $posttext .= $info->$messagestring;
+        } else {
+            $posttext .= get_string($messagetype . 'text', 'assign', $info)."\n";
+        }
+        // END CUSTOM University of Waikato.
         $posttext .= "\n---------------------------------------------------------------------\n";
         return $posttext;
     }
@@ -4012,7 +4152,14 @@ class assign {
                      format_string($assignmentname, true, $formatparams) .
                      '</a></font></p>';
         $posthtml .= '<hr /><font face="sans-serif">';
-        $posthtml .= '<p>' . get_string($messagetype . 'html', 'assign', $info) . '</p>';
+        // CUSTOM University of Waikato.
+        $messagestring = $messagetype . 'html';
+        if (isset($info->$messagestring)) {
+            $posthtml .= '<p>' . $info->$messagestring . '</p>';
+        } else {
+            $posthtml .= '<p>' . get_string($messagetype . 'html', 'assign', $info) . '</p>';
+        }
+        // END CUSTOM University of Waikato.
         $posthtml .= '</font><hr />';
         return $posthtml;
     }
@@ -4043,10 +4190,10 @@ class assign {
                                                         $modulename,
                                                         $assignmentname,
                                                         $blindmarking,
-                                                        $uniqueidforuser) {
+                                                        $uniqueidforuser,
+                                                        $info) {
         global $CFG;
 
-        $info = new stdClass();
         if ($blindmarking) {
             $info->username = get_string('participant', 'assign') . ' ' . $uniqueidforuser;
             $userfrom->firstname = get_string('participant', 'assign');
@@ -4055,10 +4202,23 @@ class assign {
         } else {
             $info->username = fullname($userfrom, true);
         }
+        $info->studentname = format_string(fullname($userto));
+        $info->studentid = $userto->id;
         $info->assignment = format_string($assignmentname, true, array('context'=>$context));
         $info->url = $CFG->wwwroot.'/mod/assign/view.php?id='.$coursemodule->id;
         $info->timeupdated = userdate($updatetime, get_string('strftimerecentfull'));
 
+        // CUSTOM University of Waikato.
+        if (file_exists($CFG->dirroot . '/local/assign/local_assign.php')) {
+            require_once($CFG->dirroot . '/local/assign/local_assign.php');
+            $info = local_assign_get_submission_status($context,
+                                                $coursemodule,
+                                                $course,
+                                                $userfrom,
+                                                $userto,
+                                                $info);
+        }
+        // END CUSTOM University of Waikato.
         $postsubject = get_string($messagetype . 'small', 'assign', $info);
         $posttext = self::format_notification_message_text($messagetype,
                                                            $info,
@@ -4111,6 +4271,7 @@ class assign {
                                       $messagetype,
                                       $eventtype,
                                       $updatetime) {
+        $info = $this->get_submission_status($userto);
         self::send_assignment_notification($userfrom,
                                            $userto,
                                            $messagetype,
@@ -4122,7 +4283,8 @@ class assign {
                                            $this->get_module_name(),
                                            $this->get_instance()->name,
                                            $this->is_blind_marking(),
-                                           $this->get_uniqueid_for_user($userfrom->id));
+                                           $this->get_uniqueid_for_user($userfrom->id),
+                                            $info);
     }
 
     /**
