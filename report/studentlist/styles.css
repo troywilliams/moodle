@@ -89,5 +89,8 @@ div.manage-groups {
     float: left;
     width: 100%;
   }
+  .media {
+      page-break-inside: avoid;
+  }
 }
-  
+
