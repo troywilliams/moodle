@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/panopto/db" VERSION="20090610" COMMENT="XMLDB file for Panopto CourseCast block"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="block_panopto_foldermap" COMMENT="Map Moodle courses to Panopto folders">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="folderid"/>
+        <FIELD NAME="folderid" TYPE="char" LENGTH="36" NOTNULL="true" UNSIGNED="true"SEQUENCE="false" PREVIOUS="courseid" NEXT="linkedfolderid"/>
+        <FIELD NAME="linkedfolderid" TYPE="char" LENGTH="36" NOTNULL="true" UNSIGNED="true"SEQUENCE="false" PREVIOUS="folderid" NEXT="syncuserlist"/>
+        <FIELD NAME="syncuserlist" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" DEFAULT="0" PREVIOUS="linkedfolderid" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
