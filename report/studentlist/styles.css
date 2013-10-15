@@ -1,0 +1,93 @@
+.icon-check-empty {
+    color: #ddd;
+}
+
+.icon-check, .icon-check-empty {
+    cursor: pointer;
+}
+
+.icon-check:hover, .icon-check-empty:hover {
+    color: #337698;
+}
+
+.media input[type="checkbox"] {
+  margin-top: 0px;
+}
+
+.officalstudentpicture {
+    width: 64px;
+    height: 64px;
+}
+
+.phones{
+    float: left;
+    display: inline-block;
+
+}
+.emails{
+    float: left;
+    display: inline-block;
+}
+.groups{
+    float: right;
+    display: inline-block;
+}
+
+.phones dt, .emails dt {
+    display: none;
+}
+
+.media{
+    padding: 5px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+.media:nth-child(odd) {
+   background-color: #f9f9f9;
+}
+
+.media:hover {
+    background-color: #f5f5f5;
+}
+
+h4.media-heading{
+   display: inline-block;
+}
+.paging {
+    margin-top: 15px;
+    text-align: center;
+}
+
+div.manage-groups {
+    display: inline-block;
+    margin-bottom: 10px;
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+@media print {
+  body {
+    padding-top: 0px !important;
+    background-color: White;
+    color: Black;
+    font-size: 75%;
+  }
+  header.navbar,
+  #page-header,
+  #block-region-side-pre,
+  #block-region-side-post,
+  #page-footer,
+  #dock,
+  #searchform,
+  .paging,
+  .buttons,
+  div.manage-groups {
+     display: none;
+  }
+  #region-main {
+    float: left;
+    width: 100%;
+  }
+}
+  
