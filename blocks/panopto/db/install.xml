@@ -8,8 +8,8 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="folderid"/>
-        <FIELD NAME="folderid" TYPE="char" LENGTH="36" NOTNULL="true" UNSIGNED="true"SEQUENCE="false" PREVIOUS="courseid" NEXT="linkedfolderid"/>
-        <FIELD NAME="linkedfolderid" TYPE="char" LENGTH="36" NOTNULL="true" UNSIGNED="true"SEQUENCE="false" PREVIOUS="folderid" NEXT="syncuserlist"/>
+        <FIELD NAME="folderid" TYPE="char" LENGTH="36" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="linkedfolderid"/>
+        <FIELD NAME="linkedfolderid" TYPE="char" LENGTH="36" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="folderid" NEXT="syncuserlist"/>
         <FIELD NAME="syncuserlist" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" DEFAULT="0" PREVIOUS="linkedfolderid" />
       </FIELDS>
       <KEYS>
