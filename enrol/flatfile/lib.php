@@ -149,7 +149,13 @@ class enrol_flatfile_plugin extends enrol_plugin {
         }
     }
 
-    public function cron() {
+    function cron($disabled = true) {
+
+        if ($disabled) {
+            mtrace('[Flatfile] cron is disabled by default due to lack of timing control');
+            return;
+        }
+
         $trace = new text_progress_trace();
         $this->sync($trace);
     }
