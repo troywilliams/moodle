@@ -12,5 +12,6 @@
     $string['unsupported'] = 'unsupported url';
     $string['notconfigured'] = 'Block not yet configured. Please go into configuration mode of this block and paste your BPI url';
     $string['launcherdesc'] = "Please click on the following link to display the application in a new page";
-    
+    $string['explorancebpi:addinstance'] = 'Add a new Explorance block';
+    $string['explorancebpi:myaddinstance'] = 'Add a new Explorance block to the My Moodle page';    
 ?>
