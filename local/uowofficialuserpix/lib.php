@@ -34,11 +34,14 @@ class userpix_import {
      * @param   string   $filename  The pull path of the file
      * @return  boolean  True if the image is import successfully, false otherwise. 
      */    
-    public static function load_user_image($userid, $filename) {
+    public static function load_user_image($userid, $filename, &$logger = null) {
         global $CFG, $DB;
         $import = false;
-        $logger =& logger_get_logger('userpix_import', 'load_user_image');        //  Initialise the logger
-                  
+
+        if (is_null($logger)) {
+            $logger =& logger_get_logger('userpix_import', 'load_user_image');        //  Initialise the logger
+        }
+
         //  Make sure that the targer file exist
         if (is_file($filename)) {
 
@@ -91,11 +94,13 @@ class userpix_import {
      * 
      * @return  boolean  True if all files were uploaded successfully, false otherwise. 
      */
-    public static function load_all_user_images() {
+    public static function load_all_user_images(&$logger = null) {
         global $CFG, $DB;
-        
+
         //  Initialise the logger
-        $logger =& logger_get_logger('userpix_import', 'load_all_user_images');
+        if (is_null($logger)) {
+            $logger =& logger_get_logger('userpix_import', 'load_all_user_images');
+        }
 
         $roleid = $DB->get_field('role', 'id', array('shortname' => 'student'));
 
@@ -117,13 +122,13 @@ class userpix_import {
         
         $userlist = $DB->get_records_sql($sql);
         $didimport = true;
-        
+
         if (!is_array($userlist) || !count($userlist)) {
             $logger->fine('No images to import');
             return true;
         }
         
-        if (! $repodir = get_config(null, 'userpiximport_repodir')) {
+        if (! $repodir =  get_config('local_uowofficialuserpix', 'repodir')) {
             $logger->error('No image repository configured.  Under the Site Administration menu go to User->Userpix Import and enter an address to the image repository');
             return false;
         }
