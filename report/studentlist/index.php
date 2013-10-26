@@ -99,10 +99,12 @@ echo html_writer::link($clearurl, new lang_string('clear'), array('class'=>'btn'
 echo html_writer::end_tag('form');
 echo html_writer::end_div();
 
-echo html_writer::start_div('manage-groups');
-$url = new moodle_url('/group/advanced_assign.php', array('courseid' => $course->id));
-echo html_writer::link($url, 'Manage groups', array('class'=>'btn'));
-echo html_writer::end_div();
+if (file_exists($CFG->dirroot. '/group/advanced_assign.php')) {
+    echo html_writer::start_div('manage-groups');
+    $url = new moodle_url('/group/advanced_assign.php', array('courseid' => $course->id));
+    echo html_writer::link($url, 'Manage groups', array('class'=>'btn'));
+    echo html_writer::end_div();
+}
 
 echo $output->sort_by_dropdown(report_studentlist::sort_by_options());
 

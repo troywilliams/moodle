@@ -36,7 +36,7 @@ class report_studentlist {
     protected $sqlselect    = null;
     protected $sqlbase      = null;
     protected $sqlparams    = array();
-    protected $sqlwhere     = null;
+    protected $sqlsearch    = null;
     protected $sqlorderby   = '';
     protected $searchtext   = null;
     protected $config       = null;
@@ -90,16 +90,22 @@ class report_studentlist {
         $params = array();
 
         $params['courseid'] = $this->course->id;
+        if (!$this->config->studentroleid) {
+            print_error('Student ID role not configured for report!');
+        }
         $params['roleid']   = $this->config->studentroleid;
 
         list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context, null, $this->currentgroup, true);
 
         $params = array_merge($params, $enrolledparams);
 
+        $context = $this->context;
+        $contextlist = get_related_contexts_string($context);
+
         $sqlbase = "FROM {user} u
                     JOIN ($enrolledsql) e ON e.id = u.id
                LEFT JOIN {user_lastaccess} ul ON (ul.userid = u.id AND ul.courseid = :courseid)
-                    JOIN {role_assignments} ra ON ra.userid = u.id AND ra.roleid = :roleid";
+                   WHERE u.id IN (SELECT userid FROM {role_assignments} WHERE roleid = :roleid AND contextid $contextlist)";
 
         $this->sqlselect  = "SELECT " . self::fields() . " ";
         $this->sqlbase    = $sqlbase;
@@ -111,7 +117,7 @@ class report_studentlist {
      */
     public function clear_search_filter() {
         $this->searchtext = null;
-        $this->sqlwhere   = null;
+        $this->sqlsearch   = null;
         unset($this->sqlparams['search1']);
         unset($this->sqlparams['search3']);
         unset($this->sqlparams['search4']);
@@ -126,22 +132,22 @@ class report_studentlist {
 
          switch ($sort) {
              case 'lastnameaz':
-                 $this->sqlorderby = 'ORDER BY u.lastname';
+                 $this->sqlorderby = ' ORDER BY u.lastname';
                  break;
              case 'lastnameza':
-                 $this->sqlorderby = 'ORDER BY u.lastname DESC';
+                 $this->sqlorderby = ' ORDER BY u.lastname DESC';
                  break;
              case 'firstnameaz':
-                 $this->sqlorderby = 'ORDER BY u.firstname';
+                 $this->sqlorderby = ' ORDER BY u.firstname';
                  break;
              case 'firstnameza':
-                 $this->sqlorderby = 'ORDER BY u.firstname  DESC';
+                 $this->sqlorderby = ' ORDER BY u.firstname  DESC';
                  break;
              case 'idnumber09':
-                 $this->sqlorderby = 'ORDER BY u.idnumber';
+                 $this->sqlorderby = ' ORDER BY u.idnumber';
                  break;
              case 'idnumber90':
-                 $this->sqlorderby = 'ORDER BY u.idnumber  DESC';
+                 $this->sqlorderby = ' ORDER BY u.idnumber  DESC';
                  break;
              default:
                  $this->sqlorderby = '';
@@ -160,7 +166,7 @@ class report_studentlist {
         $search = $text;
         if (!empty($search)) {
             $fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
-            $this->sqlwhere = " WHERE (". $DB->sql_like($fullname, ':search1', false, false) .
+            $this->sqlsearch = "AND (". $DB->sql_like($fullname, ':search1', false, false) .
                               " OR ". $DB->sql_like('username', ':search3', false, false) .
                               " OR ". $DB->sql_like('idnumber', ':search4', false, false) .") ";
             $this->sqlparams['search1'] = "%$search%";
@@ -202,7 +208,7 @@ class report_studentlist {
 
         $limitfrom = $page * self::DEFAULT_PAGE_SIZE;
 
-        return $DB->get_records_sql($this->sqlselect . $this->sqlbase . $this->sqlwhere . $this->sqlorderby, $this->sqlparams, $limitfrom, self::DEFAULT_PAGE_SIZE);
+        return $DB->get_records_sql($this->sqlselect . $this->sqlbase . $this->sqlsearch . $this->sqlorderby, $this->sqlparams, $limitfrom, self::DEFAULT_PAGE_SIZE);
     }
     /**
      * Return all records
@@ -213,7 +219,7 @@ class report_studentlist {
     public function all() {
         global $DB;
 
-        return $DB->get_records_sql($this->sqlselect . $this->sqlbase . $this->sqlwhere . $this->sqlorderby, $this->sqlparams);
+        return $DB->get_records_sql($this->sqlselect . $this->sqlbase . $this->sqlsearch . $this->sqlorderby, $this->sqlparams);
     }
     /**
      * Returns count of all matching records
@@ -223,7 +229,7 @@ class report_studentlist {
      */
     public function total_matches() {
         global $DB;
-        return $DB->count_records_sql("SELECT COUNT(1) " . $this->sqlbase . $this->sqlwhere, $this->sqlparams);
+        return $DB->count_records_sql("SELECT COUNT(1) " . $this->sqlbase . $this->sqlsearch, $this->sqlparams);
     }
 
 }
@@ -274,6 +280,22 @@ class official_student_picture extends user_picture {
         // Return the URL that has been generated.
         return $imageurl;
     }
+}
+
+/**
+ * Get defined student email domain to tack to end of username
+ * 
+ * @global type $CFG
+ * @return string
+ */
+function report_studentlist_get_student_domain() {
+    global $CFG;
+
+    $studentdomain = get_config('report_studentlist', 'studentdomain');
+    if (textlib::strpos($studentdomain, '@') === false) {
+        return '@' . $studentdomain;
+    }
+    return $studentdomain;
 }
 
 /**

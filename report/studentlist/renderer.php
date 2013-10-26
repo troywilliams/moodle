@@ -130,6 +130,8 @@ class report_studentlist_renderer extends plugin_renderer_base {
         $course = $PAGE->course;
         // get countries
         $countries = get_string_manager()->get_list_of_countries();
+        // get email domain
+        $domain = report_studentlist_get_student_domain();
 
         $stringcache = array();
         $stringcache['emailaddresses'] = new lang_string('emailaddresses', 'report_studentlist');
@@ -143,7 +145,7 @@ class report_studentlist_renderer extends plugin_renderer_base {
 
         $html = '';
         foreach($users as $user) {
-            $user->universityemail = $user->username . '@students.waikato.ac.nz';
+            $user->universityemail = $user->username . $domain;
             $user->location = ucwords($user->city) .', '. $countries[$user->country];
             // HACK, clean dots, needs to be fixed at source - damn dirty data
             $user->phone1 = ltrim($user->phone1, '.');

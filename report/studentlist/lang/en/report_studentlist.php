@@ -18,6 +18,7 @@ defined('MOODLE_INTERNAL') || die;
 
 $string['pluginname'] = 'Student list';
 $string['studentrolemap'] = 'Student role map';
+$string['studentdomain'] = 'Student email domain';
 $string['studentidnumber'] = 'Student ID number for {$a}';
 $string['selectstudent'] = 'Click to select {$a}';
 $string['studentlistfor'] = 'Student list for {$a}';

@@ -27,5 +27,6 @@ if ($ADMIN->fulltree) {
     if (!during_initial_install()) {
         $allroles = role_fix_names(get_all_roles(), null, ROLENAME_ORIGINALANDSHORT, true);
         $settings->add(new admin_setting_configselect('report_studentlist/studentroleid', new lang_string('studentrolemap', 'report_studentlist'), null, null, $allroles));
+        $settings->add(new admin_setting_configtext('report_studentlist/studentdomain', new lang_string('studentdomain','report_studentlist'), null, '@students.waikato.ac.nz', PARAM_TEXT));
     }    
 }
