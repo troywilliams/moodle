@@ -103,10 +103,11 @@ function xmldb_forum_upgrade($oldversion) {
 
         // UOW - check for postnum field in forum_posts, if not create and rename reference
         $table = new xmldb_table('forum_posts');
-        $field = new xmldb_field('postnum', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'anonymous');
-
-        // check old postnum exists, rename
-        if ($dbman->field_exists($table, $field)) {
+        // old postnumfield, for some reason an empty postnum exists in current UOW db, weird!!!
+        $postnumfield = new xmldb_field('postnum', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'anonymous');
+        $referencefield = new xmldb_field('reference', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'anonymous');
+        // check old postnum exists and reference does not exists, rename
+        if ($dbman->field_exists($table, $postnumfield) and !$dbman->field_exists($table, $referencefield)) {
             $dbman->rename_field($table, $field, 'reference');
         }
         // check if reference exists, conditionally create
