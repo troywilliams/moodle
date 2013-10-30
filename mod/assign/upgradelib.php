@@ -77,6 +77,16 @@ class assign_upgrade_manager {
 
         $oldversion = get_config('assignment_' . $oldassignment->assignmenttype, 'version');
 
+        // Turnitin plagiarism upgrade - setup
+        require_once($CFG->libdir .'/plagiarismlib.php');
+        $oldturnitinconfig = false;
+        $plagiarismplugins = get_plugin_list('plagiarism');
+        if (isset($plagiarismplugins['turnitin'])) {
+            $params = array('cm' => $oldcoursemodule->id);
+            $oldturnitinconfig = $DB->get_records('plagiarism_turnitin_config', $params);
+        }
+        // End - Turnitin plagiarism upgrade - setup
+
         $data = new stdClass();
         $data->course = $oldassignment->course;
         $data->name = $oldassignment->name;
@@ -132,6 +142,17 @@ class assign_upgrade_manager {
         $rollback = false;
         try {
             $newassignment->set_context(context_module::instance($newcoursemodule->id));
+
+            // Turnitin plagiarism upgrade - config
+            if ($oldturnitinconfig) {
+                // go through old config, change old cm to new cm and insert
+                foreach ($oldturnitinconfig as $turnitinconfig) {
+                    unset($turnitinconfig->id); //unset id for insert
+                    $turnitinconfig->cm = $newcoursemodule->id;
+                    $DB->insert_record('plagiarism_turnitin_config', $turnitinconfig);
+                }
+            }
+            // End - Turnitin plagiarism upgrade - config
 
             // The course module has now been created - time to update the core tables.
 
@@ -240,6 +261,49 @@ class assign_upgrade_manager {
                         }
                     }
                 }
+
+                // Turnitin plagiarism upgrade - files
+                if ($oldturnitinconfig) {
+                    $fs = get_file_storage();
+                    // get old files
+                    $oldfiles = $fs->get_area_files($oldcontext->id,
+                                                    'mod_assignment',
+                                                    'submission',
+                                                    $oldsubmission->id);
+
+                    foreach($oldfiles as $oldfile) {
+                        // skip directory
+                        if ($oldfile->get_filepath() == '/' and $oldfile->get_filename() == '.') {
+                            continue;
+                        }
+                        // turnitin query params
+                        $params = array('cm' => $oldcoursemodule->id,
+                                        'userid' => $oldsubmission->userid,
+                                        'identifier' => $oldfile->get_pathnamehash());
+                        // should be one file based on pathnamehash
+                        $oldturnitinfilerecord = $DB->get_record('plagiarism_turnitin_files', $params);
+                        if ($oldturnitinfilerecord) {
+                            // construct info to get the new file
+                            $contextid = $newassignment->get_context()->id;
+                            $component = 'assignsubmission_file';
+                            $filearea  = ASSIGNSUBMISSION_FILE_FILEAREA;
+                            $itemid    = $submission->id;
+                            $filepath  = $oldfile->get_filepath();
+                            $filename  = $oldfile->get_filename();
+                            // get the new file
+                            $newfile = $fs->get_file($contextid, $component, $filearea, $itemid, $filepath, $filename);
+                            if ($newfile->get_pathnamehash()) {
+                                $newturnitinfilerecord = clone($oldturnitinfilerecord);
+                                unset($newturnitinfilerecord->id); //unset id for insert
+                                $newturnitinfilerecord->cm          = $newcoursemodule->id;
+                                $newturnitinfilerecord->identifier  = $newfile->get_pathnamehash();
+                                $DB->insert_record('plagiarism_turnitin_files', $newturnitinfilerecord);
+                            }
+                        }
+                    }
+                }
+                // End - Turnitin plagiarism upgrade - files
+
                 if ($oldsubmission->timemarked) {
                     // Submission has been graded - create a grade record.
                     $grade = new stdClass();
@@ -347,6 +411,12 @@ class assign_upgrade_manager {
                                 'areaname'=>'submission');
                 $DB->update_record('grading_areas', $params);
             }
+            // Turnitin plagiarism upgrade - rollback
+            if ($oldturnitinconfig) {
+                $DB->delete_records('plagiarism_turnitin_config', array('cm' => $newcoursemodule->id));
+                $DB->delete_records('plagiarism_turnitin_files', array('cm' => $newcoursemodule->id));
+            }
+            // End - Turnitin plagiarism upgrade - rollback
             $newassignment->delete_instance();
 
             return false;
@@ -355,6 +425,12 @@ class assign_upgrade_manager {
         $cm = get_coursemodule_from_id('', $oldcoursemodule->id, $oldcoursemodule->course);
         if ($cm) {
             course_delete_module($cm->id);
+            // Turnitin plagiarism upgrade - delete
+            if ($oldturnitinconfig) {
+                $DB->delete_records('plagiarism_turnitin_config', array('cm' => $oldcoursemodule->id));
+                $DB->delete_records('plagiarism_turnitin_files', array('cm' => $oldcoursemodule->id));
+            }
+            // End - Turnitin plagiarism upgrade - delete
         }
         rebuild_course_cache($oldcoursemodule->course);
         return true;
