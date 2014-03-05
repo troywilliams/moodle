@@ -761,6 +761,21 @@ function xmldb_quiz_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2014022008, 'quiz');
     }
 
+    // MDL-17181 "Feedback for all answers" option in Quiz module
+    if ($oldversion < 2014030300) {
+        // Define field reviewallanswers to be added to quiz
+        $table = new xmldb_table('quiz');
+        $field = new xmldb_field('reviewallanswers', XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'reviewrightanswer');
+
+        // Conditionally launch add field reviewallanswers
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Quiz savepoint reached
+        upgrade_mod_savepoint(true, 2014030300, 'quiz');
+    }
+
     return true;
 }
 
