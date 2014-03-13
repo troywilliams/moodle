@@ -335,7 +335,7 @@ function qtype_multianswer_extract_question($text) {
         } else if (!empty($answerregs[ANSWER_REGEX_ANSWER_TYPE_MULTICHOICE])) {
             $wrapped->qtype = 'multichoice';
             $wrapped->single = 1;
-            $wrapped->shuffleanswers = 1;
+            $wrapped->shuffleanswers = 0;
             $wrapped->answernumbering = 0;
             $wrapped->correctfeedback['text'] = '';
             $wrapped->correctfeedback['format'] = FORMAT_HTML;
