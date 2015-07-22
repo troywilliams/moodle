@@ -238,7 +238,8 @@ function forum_rss_feed_posts_sql($forum, $cm, $newsince=0) {
                  p.created AS postcreated,
                  p.messageformat AS postformat,
                  p.messagetrust AS posttrust,
-                 p.parent as postparent
+                 p.parent as postparent,
+                 p.anonymous
             FROM {forum_discussions} d,
                {forum_posts} p,
                {user} u
@@ -353,7 +354,12 @@ function forum_rss_feed_contents($forum, $sql, $params, $context) {
                     //we should have an item title by now but if we dont somehow then substitute something somewhat meaningful
                     $item->title = format_string($forum->name.' '.userdate($rec->postcreated,get_string('strftimedatetimeshort', 'langconfig')));
                 }
-                $item->author = fullname($rec);
+                $anonymous = $forum->anonymous == 1 ? true : ($rec->anonymous == 2 ? $rec->anonymous : false);
+                if ($anonymous) {
+                    $item->author = $CFG->forum_anonymousname;
+                } else {
+                    $item->author = fullname($user);
+                }
                 $message = file_rewrite_pluginfile_urls($rec->postmessage, 'pluginfile.php', $context->id,
                         'mod_forum', 'post', $rec->postid);
                 $formatoptions->trusted = $rec->posttrust;

@@ -222,6 +222,7 @@ class restore_forum_activity_structure_step extends restore_activity_structure_s
             $sd->assessed = $forumrec->assessed;
             $sd->message  = $forumrec->intro;
             $sd->messageformat = $forumrec->introformat;
+            $sd->anonymous = $forumrec->anonymous;
             $sd->messagetrust  = true;
             $sd->mailnow  = false;
             $sdid = forum_add_discussion($sd, null, null, $this->task->get_userid());

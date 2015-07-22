@@ -140,7 +140,6 @@ function xmldb_forum_upgrade($oldversion) {
     // Put any upgrade step following this.
 
     if ($oldversion < 2014051201) {
-
         // Incorrect values that need to be replaced.
         $replacements = array(
             11 => 20,
@@ -242,6 +241,27 @@ function xmldb_forum_upgrade($oldversion) {
 
     // Moodle v2.9.0 release upgrade line.
     // Put any upgrade step following this.
+    if ($oldversion < 2015051102) {
+        // ----------------------------
+        // MDL-1071 - Anonymous posting
+        // ----------------------------
+        // Module level anonymity
+        $table = new xmldb_table('forum');
+        $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        // Conditionally add field anonymous
+        if(!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Post level anonymity
+        $table = new xmldb_table('forum_posts');
+        $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        // Conditionally add field anonymous
+        if(!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Forum savepoint reached.
+        upgrade_mod_savepoint(true, 2015051102, 'forum');
+    }
 
     return true;
 }

@@ -29,11 +29,26 @@ $string['addanewquestion'] = 'Add a new question';
 $string['addanewtopic'] = 'Add a new topic';
 $string['advancedsearch'] = 'Advanced search';
 $string['allforums'] = 'All forums';
+$string['allowanonymous'] = 'Anonymize posts?';
+$string['allowanonymous_help'] = '
+* No, never - Standard forum, peoples names and profile images are displayed as usual
+* Yes, all posts - All posts will be masked as anonymous
+* Optional (let the user decide) - Option to mask a particular post as anonymous
+
+Anonymous posts are not truly anonymous, the instructor can reveal the authors\' names at any time.';
+$string['allowanonymousnote'] = '<center><b><em><small>Anonymous posts are not truly anonymous -- the instructor can reveal the authors\' names at any time.</small></em></b></center><br>';
 $string['allowdiscussions'] = 'Can a {$a} post to this forum?';
 $string['allowsallsubscribe'] = 'This forum allows everyone to choose whether to subscribe or not';
 $string['allowsdiscussions'] = 'This forum allows each person to start one discussion topic.';
 $string['allsubscribe'] = 'Subscribe to all forums';
 $string['allunsubscribe'] = 'Unsubscribe from all forums';
+$string['anonno'] = 'No, never';
+$string['anonoptional'] = 'Optional (let the user decide)';
+$string['anonyes'] = 'Yes, all posts';
+$string['anonymous'] = 'Anonymous';
+$string['anonymous_help'] = '<h1>Make posts anonymous?</h1>';
+$string['anonymouspost'] = 'Post anonymously';
+$string['anonymousname'] = 'Anonymous user name';
 $string['alreadyfirstpost'] = 'This is already the first post in the discussion';
 $string['anyfile'] = 'Any file';
 $string['areaattachment'] = 'Attachments';
@@ -90,6 +105,7 @@ $string['completionpostshelp'] = 'requiring discussions or replies to complete';
 $string['completionreplies'] = 'Student must post replies:';
 $string['completionrepliesgroup'] = 'Require replies';
 $string['completionreplieshelp'] = 'requiring replies to complete';
+$string['configanonymousname'] = 'The user name to display on anonymous forum posts.';
 $string['configcleanreadtime'] = 'The hour of the day to clean old posts from the \'read\' table.';
 $string['configdigestmailtime'] = 'People who choose to have emails sent to them in digest form will be emailed the digest daily. This setting controls which time of day the daily mail will be sent (the next cron that runs after this hour will send it).';
 $string['configdisplaymode'] = 'The default display mode for discussions if one isn\'t set.';

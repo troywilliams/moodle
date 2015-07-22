@@ -762,6 +762,14 @@ function forum_cron() {
                     $replyaddress = $messageinboundgenerator->generate($userto->id);
                 }
 
+                // MDL-1071
+                $anonymous = $forum->anonymous == 1 ? true : ($forum->anonymous == 2 ? $post->anonymous : false);
+                if ($anonymous) {
+                    $userfrom->firstname = $CFG->forum_anonymousname;
+                    $userfrom->lastname = '';
+                    $userfrom->email = $CFG->noreplyaddress;
+                }
+
                 $a = new stdClass();
                 $a->courseshortname = $shortname;
                 $a->forumname = $cleanforumname;
@@ -1077,12 +1085,17 @@ function forum_cron() {
                             $posttext .= "\n";
                             $posttext .= $CFG->wwwroot.'/mod/forum/discuss.php?d='.$discussion->id;
                             $by = new stdClass();
-                            $by->name = fullname($userfrom);
+                            $by->name = $post->anonymous ? $CFG->forum_anonymousname : fullname($userfrom);
                             $by->date = userdate($post->modified);
                             $posttext .= "\n".format_string($post->subject,true).' '.get_string("bynameondate", "forum", $by);
                             $posttext .= "\n---------------------------------------------------------------------";
 
-                            $by->name = "<a target=\"_blank\" href=\"$CFG->wwwroot/user/view.php?id=$userfrom->id&amp;course=$course->id\">$by->name</a>";
+                            // MDL-1071
+                            if ($post->anonymous) {
+                                $by->name = $CFG->forum_anonymousname;
+                            } else {
+                                $by->name = "<a target=\"_blank\" href=\"$CFG->wwwroot/user/view.php?id=$userfrom->id&amp;course=$course->id\">$by->name</a>";
+                            }
                             $posthtml .= '<div><a target="_blank" href="'.$CFG->wwwroot.'/mod/forum/discuss.php?d='.$discussion->id.'#p'.$post->id.'">'.format_string($post->subject,true).'</a> '.get_string("bynameondate", "forum", $by).'</div>';
 
                         } else {
@@ -1175,6 +1188,9 @@ function forum_make_mail_text($course, $cm, $forum, $discussion, $post, $userfro
     global $CFG, $USER;
 
     $modcontext = context_module::instance($cm->id);
+
+    // MDL-1071
+    $post->anonymous = $forum->anonymous == 1 ? true : ($forum->anonymous == 2 ? $post->anonymous : false);
 
     if (!isset($userto->viewfullnames[$forum->id])) {
         $viewfullnames = has_capability('moodle/site:viewfullnames', $modcontext, $userto->id);
@@ -1696,9 +1712,15 @@ function forum_print_recent_activity($course, $viewfullnames, $timestart) {
     foreach ($printposts as $post) {
         $subjectclass = empty($post->parent) ? ' bold' : '';
 
+        // MDL-1071
+        if ($post->anonymous) {
+            $fullname = $CFG->forum_anonymousname;
+        } else {
+            $fullname = fullname($post, $viewfullnames);
+        }
         echo '<li><div class="head">'.
                '<div class="date">'.userdate($post->modified, $strftimerecent).'</div>'.
-               '<div class="name">'.fullname($post, $viewfullnames).'</div>'.
+               '<div class="name">'.$fullname.'</div>'.
              '</div>';
         echo '<div class="info'.$subjectclass.'">';
         if (empty($post->parent)) {
@@ -2305,6 +2327,7 @@ function forum_get_user_posts($forumid, $userid) {
                                    JOIN {user} u              ON u.id = p.userid
                              WHERE f.id = ?
                                    AND p.userid = ?
+                                   AND p.anonymous = 0
                                    $timedsql
                           ORDER BY p.modified ASC", $params);
 }
@@ -2340,6 +2363,7 @@ function forum_get_user_involved_discussions($forumid, $userid) {
                                    JOIN {forum_posts} p       ON p.discussion = d.id
                              WHERE f.id = ?
                                    AND p.userid = ?
+                                   AND p.anonymous = 0
                                    $timedsql", $params);
 }
 
@@ -2374,6 +2398,7 @@ function forum_count_user_posts($forumid, $userid) {
                                   JOIN {user} u              ON u.id = p.userid
                             WHERE f.id = ?
                                   AND p.userid = ?
+                                  AND p.anonymous = 0
                                   $timedsql", $params);
 }
 
@@ -3034,6 +3059,14 @@ function forum_make_mail_post($course, $cm, $forum, $discussion, $post, $userfro
 
     $modcontext = context_module::instance($cm->id);
 
+    // MDL-1071
+    $post->anonymous = $forum->anonymous == 1 ? true : ($forum->anonymous == 2 ? $post->anonymous : false);
+    //if ($post->anonymous) {
+       // $userfrom->firstname = $CFG->forum_anonymousname;
+       // $userfrom->lastname = '';
+       // $userfrom->email = $CFG->noreplyaddress;
+    //}
+
     if (!isset($userto->viewfullnames[$forum->id])) {
         $viewfullnames = has_capability('moodle/site:viewfullnames', $modcontext, $userto->id);
     } else {
@@ -3051,7 +3084,12 @@ function forum_make_mail_post($course, $cm, $forum, $discussion, $post, $userfro
     $output = '<table border="0" cellpadding="3" cellspacing="0" class="forumpost">';
 
     $output .= '<tr class="header"><td width="35" valign="top" class="picture left">';
-    $output .= $OUTPUT->user_picture($userfrom, array('courseid'=>$course->id));
+    // MDL-1071
+    if ($post->anonymous) {
+        $output .= html_writer::img($OUTPUT->pix_url('anonymous', 'forum'), $CFG->forum_anonymousname);
+    } else {
+        $output .= $OUTPUT->user_picture($userfrom, array('courseid'=>$course->id));
+    }
     $output .= '</td>';
 
     if ($post->parent) {
@@ -3160,7 +3198,7 @@ function forum_make_mail_post($course, $cm, $forum, $discussion, $post, $userfro
  */
 function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=false, $reply=false, $link=false,
                           $footer="", $highlight="", $postisread=null, $dummyifcantsee=true, $istracked=null, $return=false) {
-    global $USER, $CFG, $OUTPUT;
+    global $USER, $CFG, $DB, $OUTPUT;
 
     require_once($CFG->libdir . '/filelib.php');
 
@@ -3171,6 +3209,8 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
 
     $post->course = $course->id;
     $post->forum  = $forum->id;
+    // MDL-1071
+    $post->anonymous = $forum->anonymous == 1 ? true : ($forum->anonymous == 2 ? $post->anonymous : false);
     $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $modcontext->id, 'mod_forum', 'post', $post->id);
     if (!empty($CFG->enableplagiarism)) {
         require_once($CFG->libdir.'/plagiarismlib.php');
@@ -3402,7 +3442,12 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
                                                    'aria-label' => $discussionbyuser));
     $output .= html_writer::start_tag('div', array('class'=>'row header clearfix'));
     $output .= html_writer::start_tag('div', array('class'=>'left picture'));
-    $output .= $OUTPUT->user_picture($postuser, array('courseid'=>$course->id));
+    // MDL-1071
+    if ($post->anonymous) {
+        $output .= html_writer::img($OUTPUT->pix_url('anonymous', 'forum'), $CFG->forum_anonymousname);
+    } else {
+        $output .= $OUTPUT->user_picture($postuser, array('courseid'=>$course->id));
+    }
     $output .= html_writer::end_tag('div');
 
 
@@ -3417,7 +3462,12 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
                                                            'aria-level' => '2'));
 
     $by = new stdClass();
-    $by->name = html_writer::link($postuser->profilelink, $postuser->fullname);
+    // MDL-1071
+    if ($post->anonymous) {
+        $by->name = $CFG->forum_anonymousname;
+    } else {
+        $by->name = html_writer::link($postuser->profilelink, $postuser->fullname);
+    }
     $by->date = userdate($post->modified);
     $output .= html_writer::tag('div', get_string('bynameondate', 'forum', $by), array('class'=>'author',
                                                                                        'role' => 'heading',
@@ -3675,10 +3725,20 @@ function forum_rating_validate($params) {
 function forum_print_discussion_header(&$post, $forum, $group=-1, $datestring="",
                                         $cantrack=true, $forumtracked=true, $canviewparticipants=true, $modcontext=NULL) {
 
-    global $COURSE, $USER, $CFG, $OUTPUT;
+    global $COURSE, $USER, $CFG, $DB, $OUTPUT;
 
     static $rowcount;
     static $strmarkalldread;
+
+    // MDL-1071
+    // Because the discussion list doesn't actually use the post to build the page we have to
+    // load each post to see if it's anonymous, but only if anonymity is optional for this forum.
+    if ($forum->anonymous == 2) {
+        $actual_post = $DB->get_record('forum_posts', array('id' => $post->id));
+        $post->anonymous = $actual_post->anonymous;
+    } else {
+        $post->anonymous = $forum->anonymous == 1 ? true : ($forum->anonymous == 2 ? $post->anonymous : false);
+    }
 
     if (empty($modcontext)) {
         if (!$cm = get_coursemodule_from_instance('forum', $forum->id, $forum->course)) {
@@ -3710,13 +3770,23 @@ function forum_print_discussion_header(&$post, $forum, $group=-1, $datestring=""
     $postuser = username_load_fields_from_object($postuser, $post, null, $postuserfields);
     $postuser->id = $post->userid;
     echo '<td class="picture">';
-    echo $OUTPUT->user_picture($postuser, array('courseid'=>$forum->course));
+    // MDL-1071
+    if ($post->anonymous) {
+        echo html_writer::img($OUTPUT->pix_url('anonymous', 'forum'), $CFG->forum_anonymousname);
+    } else {
+        echo $OUTPUT->user_picture($postuser, array('courseid'=>$forum->course));
+    }
     echo "</td>\n";
 
     // User name
     $fullname = fullname($postuser, has_capability('moodle/site:viewfullnames', $modcontext));
     echo '<td class="author">';
-    echo '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$post->userid.'&amp;course='.$forum->course.'">'.$fullname.'</a>';
+    // MDL-1071
+    if ($post->anonymous) {
+        echo $CFG->forum_anonymousname;
+    } else {
+        echo '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$post->userid.'&amp;course='.$forum->course.'">'.$fullname.'</a>';
+    }
     echo "</td>\n";
 
     // Group picture
@@ -3778,11 +3848,21 @@ function forum_print_discussion_header(&$post, $forum, $group=-1, $datestring=""
     $usermodified->id = $post->usermodified;
     $usermodified = username_load_fields_from_object($usermodified, $post, 'um');
 
-    // In QA forums we check that the user can view participants.
-    if ($forum->type !== 'qanda' || $canviewparticipants) {
-        echo '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$post->usermodified.'&amp;course='.$forum->course.'">'.
-             fullname($usermodified).'</a><br />';
-        $parenturl = (empty($post->lastpostid)) ? '' : '&amp;parent='.$post->lastpostid;
+    // MDL-1071
+    if (empty($post->lastpostid)) {
+        $lastpost = $post;
+    } else {
+        $lastpost = $DB->get_record('forum_posts', array('id' => $post->lastpostid));
+    }
+    if($lastpost->anonymous) {
+        echo $CFG->forum_anonymousname . '<br/>';
+    } else {
+         // Show link to last poster and their post if user can see them.
+        if ($canviewparticipants) {
+            echo '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$post->usermodified.'&amp;course='.$forum->course.'">'.
+                 fullname($usermodified).'</a><br />';
+            $parenturl = (empty($post->lastpostid)) ? '' : '&amp;parent='.$post->lastpostid;
+        }
     }
 
     echo '<a href="'.$CFG->wwwroot.'/mod/forum/discuss.php?d='.$post->discussion.$parenturl.'">'.
@@ -4354,6 +4434,8 @@ function forum_add_new_post($post, $mform, $unused = null) {
     $post->mailed     = FORUM_MAILED_PENDING;
     $post->userid     = $USER->id;
     $post->attachment = "";
+    // MDL-1071
+    $post->anonymous  = $forum->anonymous == 1 ? 1 : ($forum->anonymous == 2 ? (int)$post->anonymous : 0);
     if (!isset($post->totalscore)) {
         $post->totalscore = 0;
     }
@@ -4470,6 +4552,8 @@ function forum_add_discussion($discussion, $mform=null, $unused=null, $userid=nu
     $post->forum         = $forum->id;     // speedup
     $post->course        = $forum->course; // speedup
     $post->mailnow       = $discussion->mailnow;
+    // MDL-1071
+    $post->anonymous     = ($forum->anonymous == 1 ? 1 : ($forum->anonymous == 2 ? (int)$discussion->anonymous : 0));
 
     $post->id = $DB->insert_record("forum_posts", $post);
 
@@ -5718,7 +5802,12 @@ function forum_print_posts_threaded($course, &$cm, $forum, $discussion, $parent,
                     continue;
                 }
                 $by = new stdClass();
-                $by->name = fullname($post, $canviewfullnames);
+                // MDL-1071
+                if ($post->anonymous) {
+                    $by->name = $CFG->forum_anonymousname;
+                } else {
+                    $by->name = fullname($post, $canviewfullnames);
+                }
                 $by->date = userdate($post->modified);
 
                 if ($forumtracked) {
@@ -5800,7 +5889,7 @@ function forum_get_recent_mod_activity(&$activities, &$index, $timestart, $cours
     $params = array($timestart, $cm->instance);
 
     if ($userid) {
-        $userselect = "AND u.id = ?";
+        $userselect = "AND u.id = ? AND p.anonymous = 0 ";
         $params[] = $userid;
     } else {
         $userselect = "";
@@ -5887,6 +5976,7 @@ function forum_get_recent_mod_activity(&$activities, &$index, $timestart, $cours
         $additionalfields = explode(',', user_picture::fields());
         $tmpactivity->user = username_load_fields_from_object($tmpactivity->user, $post, null, $additionalfields);
         $tmpactivity->user->id = $post->userid;
+        $tmpactivity->user->anonymous = $post->anonymous;
 
         $activities[$index++] = $tmpactivity;
     }
@@ -5910,7 +6000,11 @@ function forum_print_recent_mod_activity($activity, $courseid, $detail, $modname
     echo '<table border="0" cellpadding="3" cellspacing="0" class="forum-recent">';
 
     echo "<tr><td class=\"userpicture\" valign=\"top\">";
-    echo $OUTPUT->user_picture($activity->user, array('courseid'=>$courseid));
+    if ($activity->user->anonymous) {
+        echo '<img alt="' . $CFG->forum_anonymousname . '" src="' . $OUTPUT->pix_url('anonymous', 'forum') . '"/>';
+    } else {
+        echo $OUTPUT->user_picture($activity->user, array('courseid'=>$courseid));
+    }
     echo "</td><td class=\"$class\">";
 
     if ($activity->content->parent) {
@@ -5930,9 +6024,9 @@ function forum_print_recent_mod_activity($activity, $courseid, $detail, $modname
     echo '</div>';
 
     echo '<div class="user">';
-    $fullname = fullname($activity->user, $viewfullnames);
+    $fullname = $activity->user->anonymous ? $CFG->forum_anonymousname : fullname($activity->user, $viewfullnames);
     echo "<a href=\"$CFG->wwwroot/user/view.php?id={$activity->user->id}&amp;course=$courseid\">"
-         ."{$fullname}</a> - ".userdate($activity->timestamp);
+         ."{$fullname}</a> - ".userdate($activity->timestamp, get_string('strftimedate', 'langconfig'));
     echo '</div>';
       echo "</td></tr></table>";
 
@@ -7592,9 +7686,12 @@ function forum_get_posts_by_user($user, array $courses, $musthaveaccess = false,
 
     $sql = "FROM {forum_posts} p
             JOIN {forum_discussions} d ON d.id = p.discussion
+            JOIN {forum} f ON f.id = d.forum
             JOIN {user} u ON u.id = p.userid
            WHERE ($wheresql)
-             AND p.userid = :userid ";
+             AND p.userid = :userid
+             AND f.anonymous != 1
+             AND (p.anonymous != 1)";
     $orderby = "ORDER BY p.modified DESC";
     $forumsearchparams['userid'] = $user->id;
 

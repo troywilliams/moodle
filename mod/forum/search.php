@@ -141,6 +141,7 @@ if (!$search || $showform) {
 
 /// We need to do a search now and print results
 
+$extrasql = preg_match('/(^| )user(id)?:/', $search) ? 'AND anonymous = 0' : '';
 $searchterms = str_replace('forumid:', 'instance:', $search);
 $searchterms = explode(' ', $searchterms);
 
@@ -148,7 +149,7 @@ $searchform = forum_search_form($course, $search);
 
 $PAGE->navbar->add($strsearch, new moodle_url('/mod/forum/search.php', array('id'=>$course->id)));
 $PAGE->navbar->add($strsearchresults);
-if (!$posts = forum_search_posts($searchterms, $course->id, $page*$perpage, $perpage, $totalcount)) {
+if (!$posts = forum_search_posts($searchterms, $course->id, $page*$perpage, $perpage, $totalcount, $extrasql)) {
     $PAGE->set_title($strsearchresults);
     $PAGE->set_heading($course->fullname);
     echo $OUTPUT->header();

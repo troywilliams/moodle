@@ -91,6 +91,14 @@ class mod_forum_mod_form extends moodleform_mod {
         $mform->addElement('header', 'subscriptionandtrackinghdr', get_string('subscriptionandtracking', 'forum'));
 
         $options = array();
+        $options[0] = get_string('anonno', 'forum');
+        $options[1] = get_string('anonyes', 'forum');
+        $options[2] = get_string('anonoptional', 'forum');
+        $mform->addElement('select', 'anonymous', get_string('allowanonymous', 'forum'), $options);
+        $mform->addHelpButton('anonymous', 'allowanonymous', 'forum');
+        $mform->addElement('html', get_string('allowanonymousnote', 'forum'));
+
+        $options = array();
         $options[FORUM_CHOOSESUBSCRIBE] = get_string('subscriptionoptional', 'forum');
         $options[FORUM_FORCESUBSCRIBE] = get_string('subscriptionforced', 'forum');
         $options[FORUM_INITIALSUBSCRIBE] = get_string('subscriptionauto', 'forum');

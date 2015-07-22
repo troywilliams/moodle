@@ -35,6 +35,7 @@ $prune   = optional_param('prune', 0, PARAM_INT);
 $name    = optional_param('name', '', PARAM_CLEAN);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 $groupid = optional_param('groupid', null, PARAM_INT);
+$isanon  = optional_param('anonymous', 0, PARAM_INT) ? true : false;
 
 $PAGE->set_url('/mod/forum/post.php', array(
         'reply' => $reply,
@@ -45,6 +46,7 @@ $PAGE->set_url('/mod/forum/post.php', array(
         'name'  => $name,
         'confirm'=>$confirm,
         'groupid'=>$groupid,
+        'isanon'=>$isanon
         ));
 //these page_params will be passed as hidden variables later in the form.
 $page_params = array('reply'=>$reply, 'forum'=>$forum, 'edit'=>$edit);
@@ -149,6 +151,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
     $post->message       = '';
     $post->messageformat = editors_get_preferred_format();
     $post->messagetrust  = 0;
+    $post->anonymous     = $isanon;
 
     if (isset($groupid)) {
         $post->groupid = $groupid;
@@ -227,6 +230,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
     $post->subject     = $parent->subject;
     $post->userid      = $USER->id;
     $post->message     = '';
+    $post->anonymous   = $isanon;
 
     $post->groupid = ($discussion->groupid == -1) ? 0 : $discussion->groupid;
 
@@ -283,6 +287,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
     $post->course = $course->id;
     $post->forum  = $forum->id;
     $post->groupid = ($discussion->groupid == -1) ? 0 : $discussion->groupid;
+    $post->anonymous = $isanon;
 
     $post = trusttext_pre_edit($post, 'message', $modcontext);
 
@@ -486,6 +491,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
         $newpost->id      = $post->id;
         $newpost->parent  = 0;
         $newpost->subject = $name;
+        $newpost->anonymous = $isanon;
 
         $DB->update_record("forum_posts", $newpost);
 
@@ -654,6 +660,7 @@ $mform_post->set_data(array(        'attachments'=>$draftitemid,
                                     ),
                                     'discussionsubscribe' => $discussionsubscribe,
                                     'mailnow'=>!empty($post->mailnow),
+                                    'anonymous'=>($post->anonymous)?1:0,
                                     'userid'=>$post->userid,
                                     'parent'=>$post->parent,
                                     'discussion'=>$post->discussion,
@@ -699,6 +706,7 @@ if ($mform_post->is_cancelled()) {
     $fromform->messageformat = $fromform->message['format'];
     $fromform->message       = $fromform->message['text'];
     // WARNING: the $fromform->message array has been overwritten, do not use it anymore!
+    $fromform->anonymous     = empty($fromform->anonymous) ? 0 : 1;
     $fromform->messagetrust  = trusttext_trusted($modcontext);
 
     $contextcheck = isset($fromform->groupinfo) && has_capability('mod/forum:movediscussions', $modcontext);
