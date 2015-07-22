@@ -74,3 +74,21 @@ M.core_group.groupslist = function(Y, preventgroupremoval) {
     }
     actions.init();
 };
+
+M.core_group.updatetotals = function(Y) {
+    Y.all('.check12').on('click', function(e) {
+        var regex = /group-(\d.*)-user-(\d.*)/;
+        var matches = e.currentTarget.get('id').match(regex);
+        var groupid = matches[1];
+        var userid = matches[2];
+        var grouptotal = Y.one('#group-' + groupid + '-total');
+        var usertotal = Y.one('#user-' + userid + '-total');
+        if (e._currentTarget.checked) {
+            grouptotal.set('innerHTML', parseInt(grouptotal.get('innerHTML')) + 1);
+            usertotal.set('innerHTML', parseInt(usertotal.get('innerHTML')) + 1);
+        } else {
+            grouptotal.set('innerHTML', parseInt(grouptotal.get('innerHTML')) - 1);
+            usertotal.set('innerHTML', parseInt(usertotal.get('innerHTML')) - 1);
+        }
+    });
+};
