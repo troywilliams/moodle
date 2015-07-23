@@ -75,6 +75,7 @@ class mod_quiz_admin_review_setting extends admin_setting {
             'specificfeedback' => get_string('specificfeedback', 'question'),
             'generalfeedback'  => get_string('generalfeedback', 'question'),
             'rightanswer'      => get_string('rightanswer', 'question'),
+            'allanswers'       => get_string('allanswers', 'quiz'),
             'overallfeedback'  => get_string('overallfeedback', 'quiz'),
         );
     }

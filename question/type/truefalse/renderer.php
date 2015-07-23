@@ -78,11 +78,12 @@ class qtype_truefalse_renderer extends qtype_renderer {
         $falseclass = '';
         $truefeedbackimg = '';
         $falsefeedbackimg = '';
-        if ($options->correctness) {
-            if ($truechecked) {
+        if ($options->correctness || $options->allanswers) {
+            if ($truechecked || $options->allanswers) {
                 $trueclass = ' ' . $this->feedback_class((int) $question->rightanswer);
                 $truefeedbackimg = $this->feedback_image((int) $question->rightanswer);
-            } else if ($falsechecked) {
+            }
+            if ($falsechecked || $options->allanswers) {
                 $falseclass = ' ' . $this->feedback_class((int) (!$question->rightanswer));
                 $falsefeedbackimg = $this->feedback_image((int) (!$question->rightanswer));
             }
@@ -104,8 +105,16 @@ class qtype_truefalse_renderer extends qtype_renderer {
                 array('class' => 'prompt'));
 
         $result .= html_writer::start_tag('div', array('class' => 'answer'));
+        if ($options->allanswers || $response) {
+            $truefeedbackimg .= html_writer::div($question->format_text($question->truefeedback, $question->truefeedbackformat,
+                        $qa, 'question', 'answerfeedback', $question->trueanswerid), 'specificfeedback');
+        }
         $result .= html_writer::tag('div', $radiotrue . ' ' . $truefeedbackimg,
                 array('class' => 'r0' . $trueclass));
+        if ($options->allanswers || (!$response && $response !== '')) {
+            $falsefeedbackimg .= html_writer::div($question->format_text($question->falsefeedback, $question->falsefeedbackformat,
+                        $qa, 'question', 'answerfeedback', $question->falseanswerid), 'specificfeedback');
+        }
         $result .= html_writer::tag('div', $radiofalse . ' ' . $falsefeedbackimg,
                 array('class' => 'r1' . $falseclass));
         $result .= html_writer::end_tag('div'); // Answer.
@@ -122,16 +131,7 @@ class qtype_truefalse_renderer extends qtype_renderer {
     }
 
     public function specific_feedback(question_attempt $qa) {
-        $question = $qa->get_question();
-        $response = $qa->get_last_qt_var('answer', '');
-
-        if ($response) {
-            return $question->format_text($question->truefeedback, $question->truefeedbackformat,
-                    $qa, 'question', 'answerfeedback', $question->trueanswerid);
-        } else if ($response !== '') {
-            return $question->format_text($question->falsefeedback, $question->falsefeedbackformat,
-                    $qa, 'question', 'answerfeedback', $question->falseanswerid);
-        }
+        return;
     }
 
     public function correct_response(question_attempt $qa) {
