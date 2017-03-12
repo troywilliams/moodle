@@ -637,6 +637,7 @@ class assign {
         $update->allowsubmissionsfromdate = $formdata->allowsubmissionsfromdate;
         $update->grade = $formdata->grade;
         $update->completionsubmit = !empty($formdata->completionsubmit);
+        $update->completionpass = !empty($formdata->completionpass);
         $update->teamsubmission = $formdata->teamsubmission;
         $update->requireallteammemberssubmit = $formdata->requireallteammemberssubmit;
         if (isset($formdata->teamsubmissiongroupingid)) {
@@ -1238,6 +1239,7 @@ class assign {
         $update->grade = $formdata->grade;
         if (!empty($formdata->completionunlocked)) {
             $update->completionsubmit = !empty($formdata->completionsubmit);
+            $update->completionpass = !empty($formdata->completionpass);
         }
         $update->teamsubmission = $formdata->teamsubmission;
         $update->requireallteammemberssubmit = $formdata->requireallteammemberssubmit;
@@ -5929,7 +5931,7 @@ class assign {
             $submission->status = ASSIGN_SUBMISSION_STATUS_SUBMITTED;
             $this->update_submission($submission, $userid, true, $instance->teamsubmission);
             $completion = new completion_info($this->get_course());
-            if ($completion->is_enabled($this->get_course_module()) && $instance->completionsubmit) {
+            if ($completion->is_enabled($this->get_course_module()) && ($instance->completionsubmit || $instance->completionpass)) {
                 $this->update_activity_completion_records($instance->teamsubmission,
                                                           $instance->requireallteammemberssubmit,
                                                           $submission,
@@ -6657,7 +6659,7 @@ class assign {
             $complete = COMPLETION_COMPLETE;
         }
         $completion = new completion_info($this->get_course());
-        if ($completion->is_enabled($this->get_course_module()) && $instance->completionsubmit) {
+        if ($completion->is_enabled($this->get_course_module()) && ($instance->completionsubmit || $instance->completionpass)) {
             $this->update_activity_completion_records($instance->teamsubmission,
                                                       $instance->requireallteammemberssubmit,
                                                       $submission,
@@ -6819,7 +6821,7 @@ class assign {
             $complete = COMPLETION_COMPLETE;
         }
         $completion = new completion_info($this->get_course());
-        if ($completion->is_enabled($this->get_course_module()) && $instance->completionsubmit) {
+        if ($completion->is_enabled($this->get_course_module()) && ($instance->completionsubmit || $instance->completionpass)) {
             $completion->update_state($this->get_course_module(), $complete, $userid);
         }
 
@@ -7378,7 +7380,7 @@ class assign {
 
         $completion = new completion_info($this->get_course());
         if ($completion->is_enabled($this->get_course_module()) &&
-                $this->get_instance()->completionsubmit) {
+            ($this->get_instance()->completionsubmit || $this->get_instance()->completionpass)) {
             $completion->update_state($this->get_course_module(), COMPLETION_INCOMPLETE, $userid);
         }
         \mod_assign\event\submission_status_updated::create_from_submission($this, $submission)->trigger();

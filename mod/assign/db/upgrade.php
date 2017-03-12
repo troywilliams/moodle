@@ -233,5 +233,20 @@ function xmldb_assign_upgrade($oldversion) {
     // Automatically generated Moodle v3.2.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2016120501) {
+
+        // Define field completionpass to be added to assign.
+        $table = new xmldb_table('assign');
+        $field = new xmldb_field('completionpass', XMLDB_TYPE_INTEGER, '1', null, null, null, '0', 'preventsubmissionnotingroup');
+
+        // Conditionally launch add field completionpass.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Assign savepoint reached.
+        upgrade_mod_savepoint(true, 2016120501, 'assign');
+    }
+
     return true;
 }

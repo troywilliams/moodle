@@ -368,6 +368,7 @@ class mod_assign_external extends external_api {
                      'm.grade, ' .
                      'm.timemodified, '.
                      'm.completionsubmit, ' .
+                     'm.completionpass, ' .
                      'm.cutoffdate, ' .
                      'm.teamsubmission, ' .
                      'm.requireallteammemberssubmit, '.
@@ -440,6 +441,7 @@ class mod_assign_external extends external_api {
                         'grade' => $module->grade,
                         'timemodified' => $module->timemodified,
                         'completionsubmit' => $module->completionsubmit,
+                        'completionpass' => $module->completionpass,
                         'cutoffdate' => $assign->get_instance()->cutoffdate,
                         'teamsubmission' => $module->teamsubmission,
                         'requireallteammemberssubmit' => $module->requireallteammemberssubmit,
@@ -516,6 +518,7 @@ class mod_assign_external extends external_api {
                 'grade' => new external_value(PARAM_INT, 'grade type'),
                 'timemodified' => new external_value(PARAM_INT, 'last time assignment was modified'),
                 'completionsubmit' => new external_value(PARAM_INT, 'if enabled, set activity as complete following submission'),
+                'completionpass' => new external_value(PARAM_INT, 'Whether to require passing grade'),
                 'cutoffdate' => new external_value(PARAM_INT, 'date after which submission is not accepted without an extension'),
                 'teamsubmission' => new external_value(PARAM_INT, 'if enabled, students submit as a team'),
                 'requireallteammemberssubmit' => new external_value(PARAM_INT, 'if enabled, all team members must submit'),

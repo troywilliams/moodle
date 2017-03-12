@@ -238,6 +238,19 @@ class mod_assign_mod_form extends moodleform_mod {
             $errors['attemptreopenmethod'] = get_string('reopenuntilpassincompatiblewithblindmarking', 'assign');
         }
 
+        if (array_key_exists('completion', $data) && $data['completion'] == COMPLETION_TRACKING_AUTOMATIC) {
+            $completionpass = isset($data['completionpass']) ? $data['completionpass'] : $this->current->completionpass;
+
+            // Show an error if require passing grade was selected and the grade to pass was set to 0.
+            if ($completionpass && (empty($data['gradepass']) || grade_floatval($data['gradepass']) == 0)) {
+                if (isset($data['completionpass'])) {
+                    $errors['completionpassgroup'] = get_string('gradetopassnotset', 'quiz');
+                } else {
+                    $errors['gradepass'] = get_string('gradetopassmustbeset', 'quiz');
+                }
+            }
+        }
+
         return $errors;
     }
 
@@ -277,10 +290,10 @@ class mod_assign_mod_form extends moodleform_mod {
      * @return array Contains the names of the added form elements
      */
     public function add_completion_rules() {
-        $mform =& $this->_form;
+        $mform = $this->_form;
 
-        $mform->addElement('checkbox', 'completionsubmit', '', get_string('completionsubmit', 'assign'));
-        return array('completionsubmit');
+        $mform->addElement('advcheckbox', 'completionpass', get_string('completionpass', 'quiz'), get_string('completionpass', 'quiz'));
+        return array('completionpass');
     }
 
     /**
@@ -290,7 +303,7 @@ class mod_assign_mod_form extends moodleform_mod {
      * @return bool
      */
     public function completion_rule_enabled($data) {
-        return !empty($data['completionsubmit']);
+        return !empty($data['completionsubmit']) || !empty($data['completionpass']);
     }
 
 }

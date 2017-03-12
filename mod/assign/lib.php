@@ -1574,7 +1574,6 @@ function assign_user_outline($course, $user, $coursemodule, $assignment) {
 function assign_get_completion_state($course, $cm, $userid, $type) {
     global $CFG, $DB;
     require_once($CFG->dirroot . '/mod/assign/locallib.php');
-
     $assign = new assign(null, $cm, $course);
 
     // If completion option is enabled, evaluate it and return true/false.
@@ -1585,6 +1584,18 @@ function assign_get_completion_state($course, $cm, $userid, $type) {
             $submission = $assign->get_user_submission($userid, false);
         }
         return $submission && $submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED;
+    } else if ($assign->get_instance()->completionpass) {
+        // Check for passing grade.
+        require_once($CFG->libdir . '/gradelib.php');
+        $item = grade_item::fetch(array('courseid' => $course->id, 'itemtype' => 'mod',
+            'itemmodule' => 'assign', 'iteminstance' => $cm->instance, 'outcomeid' => null));
+
+        if ($item) {
+            $grades = grade_grade::fetch_users_grades($item, array($userid), false);
+            if (!empty($grades[$userid])) {
+                return $grades[$userid]->is_passed($item);
+            }
+        }
     } else {
         // Completion option is not enabled so just return $type.
         return $type;
