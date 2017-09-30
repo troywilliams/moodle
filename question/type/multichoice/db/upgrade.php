@@ -30,7 +30,9 @@ defined('MOODLE_INTERNAL') || die();
  * @param int $oldversion the version we are upgrading from.
  */
 function xmldb_qtype_multichoice_upgrade($oldversion) {
-    global $CFG;
+    global $CFG, $DB;
+
+    $dbman = $DB->get_manager();
 
     // Moodle v2.8.0 release upgrade line.
     // Put any upgrade step following this.
@@ -49,6 +51,18 @@ function xmldb_qtype_multichoice_upgrade($oldversion) {
 
     // Automatically generated Moodle v3.3.0 release upgrade line.
     // Put any upgrade step following this.
+
+    // Show feedback on all choices in question.
+    if ($oldversion < 2017051501) {
+        $table = new xmldb_table('qtype_multichoice_options');
+        $field = new xmldb_field('showfeedbackallchoices', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        // Conditionally add field showfeedbackallchoices.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Savepoint reached.
+        upgrade_plugin_savepoint(true, 2017051501, 'qtype', 'multichoice');
+    }
 
     return true;
 }

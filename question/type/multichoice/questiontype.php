@@ -124,6 +124,7 @@ class qtype_multichoice extends question_type {
         }
         $options->answernumbering = $question->answernumbering;
         $options->shuffleanswers = $question->shuffleanswers;
+        $options->showfeedbackallchoices = $question->showfeedbackallchoices;
         $options = $this->save_combined_feedback_helper($options, $question, $context, true);
         $DB->update_record('qtype_multichoice_options', $options);
 
@@ -163,6 +164,7 @@ class qtype_multichoice extends question_type {
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
         $question->shuffleanswers = $questiondata->options->shuffleanswers;
+        $question->showfeedbackallchoices = $questiondata->options->showfeedbackallchoices;
         $question->answernumbering = $questiondata->options->answernumbering;
         if (!empty($questiondata->options->layout)) {
             $question->layout = $questiondata->options->layout;
