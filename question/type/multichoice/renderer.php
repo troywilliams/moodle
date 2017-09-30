@@ -103,7 +103,8 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             // oumultiresponse question type. It would be good to refactor to
             // avoid refering to it here.
             if ($options->feedback && empty($options->suppresschoicefeedback) &&
-                    $isselected && trim($ans->feedback)) {
+                    $isselected && trim($ans->feedback) ||
+                ($options->feedback && trim($ans->feedback) && $question->showfeedbackallchoices)) {
                 $feedback[] = html_writer::tag('div',
                         $question->make_html_inline($question->format_text(
                                 $ans->feedback, $ans->feedbackformat,
@@ -113,7 +114,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
                 $feedback[] = '';
             }
             $class = 'r' . ($value % 2);
-            if ($options->correctness && $isselected) {
+            if ($options->correctness && $isselected || ($options->correctness && $question->showfeedbackallchoices)) {
                 $feedbackimg[] = $this->feedback_image($this->is_right($ans));
                 $class .= ' ' . $this->feedback_class($this->is_right($ans));
             } else {

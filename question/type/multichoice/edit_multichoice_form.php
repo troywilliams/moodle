@@ -40,6 +40,12 @@ class qtype_multichoice_edit_form extends question_edit_form {
      * @param object $mform the form being built.
      */
     protected function definition_inner($mform) {
+        $mform->addElement('advcheckbox', 'showfeedbackallchoices',
+            get_string('reviewfeedbackoptions', 'qtype_multichoice') , get_string('showfeedbackallchoices', 'qtype_multichoice'),
+            null, array(0, 1));
+        $mform->addHelpButton('showfeedbackallchoices', 'showfeedbackallchoices', 'qtype_multichoice');
+        $mform->setDefault('showfeedbackallchoices', 0);
+
         $menu = array(
             get_string('answersingleno', 'qtype_multichoice'),
             get_string('answersingleyes', 'qtype_multichoice'),
@@ -99,6 +105,7 @@ class qtype_multichoice_edit_form extends question_edit_form {
             $question->single = $question->options->single;
             $question->shuffleanswers = $question->options->shuffleanswers;
             $question->answernumbering = $question->options->answernumbering;
+            $question->showfeedbackallchoices = $question->options->showfeedbackallchoices;
         }
 
         return $question;
