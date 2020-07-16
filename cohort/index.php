@@ -135,10 +135,18 @@ foreach($cohorts['cohorts'] as $cohort) {
             $line[] = $cohortcontext->get_context_name(false);
         }
     }
-    $tmpl = new \core_cohort\output\cohortname($cohort);
-    $line[] = $OUTPUT->render_from_template('core/inplace_editable', $tmpl->export_for_template($OUTPUT));
-    $tmpl = new \core_cohort\output\cohortidnumber($cohort);
-    $line[] = $OUTPUT->render_from_template('core/inplace_editable', $tmpl->export_for_template($OUTPUT));
+    if (empty($cohort->component)) {
+        $tmpl = new \core_cohort\output\cohortname($cohort);
+        $line[] = $OUTPUT->render_from_template('core/inplace_editable', $tmpl->export_for_template($OUTPUT));
+    } else {
+        $line[] = format_text($cohort->name);
+    }
+    if (empty($cohort->component)) {
+        $tmpl = new \core_cohort\output\cohortidnumber($cohort);
+        $line[] = $OUTPUT->render_from_template('core/inplace_editable', $tmpl->export_for_template($OUTPUT));
+    } else {
+        $line[] = format_text($cohort->idnumber);
+    }
     $line[] = format_text($cohort->description, $cohort->descriptionformat);
 
     $line[] = $DB->count_records('cohort_members', array('cohortid'=>$cohort->id));
